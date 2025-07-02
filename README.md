@@ -77,3 +77,20 @@ The app will log each activity session with detailed completion status, includin
 - **Timer Implementation:** Android `CountDownTimer` or a custom coroutine-based timer for precise interval management.
 - **User Interface:** XML layouts with Jetpack Compose (optional, for modern UI) or traditional Views. Focus on clean, readable design with clear visual and auditory feedback.
 - **File I/O:** Standard Android APIs for reading the YAML config file from external storage. Permissions for storage access will be required.
+
+## Building and Testing
+
+### Build the app
+```
+./gradlew assembleDebug
+```
+
+### Run unit tests
+```
+./gradlew test
+```
+
+### Run instrumentation tests
+```
+./gradlew connectedAndroidTest
+```
