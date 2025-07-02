@@ -1,0 +1,18 @@
+activities:
+  - name: 7 Min Workout
+    intervals:
+      - name: Jumping Jacks
+        duration: 30
+        duration_unit: seconds
+        rest_duration: 5
+        rest_duration_unit: seconds
+      - name: Wall Sit
+        duration: 45
+        duration_unit: seconds
+  - name: Study Session
+    intervals:
+      - name: Pomodoro
+        duration: 25
+        duration_unit: minutes
+        rest_duration: 5
+        rest_duration_unit: minutes

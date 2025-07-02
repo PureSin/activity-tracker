@@ -1,59 +1,104 @@
 package com.example.kelvinma.activitytracker
 
 import android.os.Bundle
-import com.google.android.material.snackbar.Snackbar
-import androidx.appcompat.app.AppCompatActivity
-import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.navigateUp
-import androidx.navigation.ui.setupActionBarWithNavController
-import android.view.Menu
-import android.view.MenuItem
-import com.example.kelvinma.activitytracker.databinding.ActivityMainBinding
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.kelvinma.activitytracker.data.Activity
+import com.example.kelvinma.activitytracker.data.ActivityRepository
+import com.example.kelvinma.activitytracker.ui.theme.ActivityTrackerTheme
+import com.example.kelvinma.activitytracker.ui.timer.TimerScreen
 
-class MainActivity : AppCompatActivity() {
-
-    private lateinit var appBarConfiguration: AppBarConfiguration
-    private lateinit var binding: ActivityMainBinding
-
+class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        setSupportActionBar(binding.toolbar)
-
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
-        appBarConfiguration = AppBarConfiguration(navController.graph)
-        setupActionBarWithNavController(navController, appBarConfiguration)
-
-        binding.fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null)
-                .setAnchorView(R.id.fab).show()
+        setContent {
+            ActivityTrackerTheme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    val context = LocalContext.current
+                    val activityRepository = remember { ActivityRepository(context) }
+                    val activities = remember { activityRepository.getActivities().activities }
+                    val navController = rememberNavController()
+                    NavHost(navController = navController, startDestination = "activityList") {
+                        composable("activityList") {
+                            ActivityListScreen(navController, activities)
+                        }
+                        composable("activityDetail/{activityName}") { backStackEntry ->
+                            val activityName = backStackEntry.arguments?.getString("activityName")
+                            val activity = activities.find { it.name == activityName }
+                            ActivityDetailScreen(navController, activity)
+                        }
+                        composable("timer/{activityName}") { backStackEntry ->
+                            val activityName = backStackEntry.arguments?.getString("activityName")
+                            val activity = activities.find { it.name == activityName }
+                            if (activity != null) {
+                                TimerScreen(activity) {
+                                    navController.popBackStack()
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
+}
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.menu_main, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        return when (item.itemId) {
-            R.id.action_settings -> true
-            else -> super.onOptionsItemSelected(item)
+@Composable
+fun ActivityListScreen(navController: NavController, activities: List<Activity>) {
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text(text = "Activity List", style = MaterialTheme.typography.headlineMedium)
+        activities.forEach { activity ->
+            Text(
+                text = activity.name,
+                modifier = Modifier.clickable { navController.navigate("activityDetail/${activity.name}") }
+            )
         }
     }
+}
 
-    override fun onSupportNavigateUp(): Boolean {
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
-        return navController.navigateUp(appBarConfiguration)
-                || super.onSupportNavigateUp()
+@Composable
+fun ActivityDetailScreen(navController: NavController, activity: Activity?) {
+    Column(modifier = Modifier.padding(16.dp)) {
+        if (activity != null) {
+            Text(text = activity.name, style = MaterialTheme.typography.headlineMedium)
+            activity.intervals.forEach { interval ->
+                Text(text = interval.name ?: "Unnamed Interval")
+            }
+            Button(onClick = { navController.navigate("timer/${activity.name}") }) {
+                Text("Start Activity")
+            }
+        } else {
+            Text(text = "Activity not found")
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DefaultPreview() {
+    ActivityTrackerTheme {
+        val navController = rememberNavController()
+        ActivityListScreen(navController, emptyList())
     }
 }
