@@ -26,4 +26,24 @@ class ActivityInstrumentedTest {
         composeTestRule.onNodeWithText("Start Activity").performClick()
         composeTestRule.onNodeWithText("Pause").assertIsDisplayed()
     }
+
+    @Test
+    fun navigateBackFromTimerScreen() {
+        // Navigate to Timer Screen
+        composeTestRule.onNodeWithText("7 Min Workout").performClick()
+        composeTestRule.onNodeWithText("Start Activity").performClick()
+        composeTestRule.onNodeWithText("Pause").assertIsDisplayed()
+
+        // Press back to go to Activity Detail Screen
+        composeTestRule.activity.runOnUiThread {
+            composeTestRule.activity.onBackPressedDispatcher.onBackPressed()
+        }
+        composeTestRule.onNodeWithText("Start Activity").assertIsDisplayed()
+
+        // Press back to go to Activity List Screen
+        composeTestRule.activity.runOnUiThread {
+            composeTestRule.activity.onBackPressedDispatcher.onBackPressed()
+        }
+        composeTestRule.onNodeWithText("Activity List").assertIsDisplayed()
+    }
 }
