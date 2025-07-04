@@ -1,0 +1,7 @@
+name: Study Session
+intervals:
+  - name: Pomodoro
+    duration: 25
+    duration_unit: minutes
+    rest_duration: 5
+    rest_duration_unit: minutes

@@ -3,11 +3,6 @@ package com.example.kelvinma.activitytracker.data
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Activities(
-    val activities: List<Activity>
-)
-
-@Serializable
 data class Activity(
     val name: String,
     val intervals: List<Interval>

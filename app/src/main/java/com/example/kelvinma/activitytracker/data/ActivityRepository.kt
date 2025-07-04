@@ -6,8 +6,13 @@ import kotlinx.serialization.decodeFromString
 
 class ActivityRepository(private val context: Context) {
 
-    fun getActivities(): Activities {
-        val yamlString = context.assets.open("activities.yaml").bufferedReader().use { it.readText() }
-        return Yaml.default.decodeFromString(yamlString)
+    fun getActivities(): List<Activity> {
+        val assetManager = context.assets
+        val yamlFiles = assetManager.list("")?.filter { it.endsWith(".yaml") } ?: emptyList()
+        return yamlFiles.map { fileName ->
+            val yamlString = assetManager.open(fileName).bufferedReader().use { it.readText() }
+            Yaml.default.decodeFromString<Activity>(yamlString)
+        }
     }
 }
+

@@ -37,7 +37,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     val context = LocalContext.current
                     val activityRepository = remember { ActivityRepository(context) }
-                    val activities = remember { activityRepository.getActivities().activities }
+                    val activities = remember { activityRepository.getActivities() }
                     val navController = rememberNavController()
                     NavHost(navController = navController, startDestination = "activityList") {
                         composable("activityList") {

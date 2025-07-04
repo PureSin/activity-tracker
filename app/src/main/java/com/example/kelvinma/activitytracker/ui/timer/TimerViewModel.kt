@@ -113,6 +113,10 @@ class TimerViewModel(
     }
 
     private fun playSound(resId: Int) {
-        MediaPlayer.create(context, resId).start()
+        val mediaPlayer = MediaPlayer.create(context, resId)
+        mediaPlayer?.setOnCompletionListener { mp ->
+            mp.release()
+        }
+        mediaPlayer?.start()
     }
 }
