@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -15,11 +16,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.kelvinma.activitytracker.data.Activity
 import com.example.kelvinma.activitytracker.data.AppDatabase
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 
 @Composable
-fun TimerScreen(activity: Activity, onFinish: () -> Unit) {
+fun TimerScreen(activity: Activity, onFinish: () -> Unit, navController: NavController) {
     val context = LocalContext.current
     val viewModel: TimerViewModel = viewModel(
         factory = TimerViewModelFactory(
@@ -40,6 +45,9 @@ fun TimerScreen(activity: Activity, onFinish: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        IconButton(onClick = { navController.popBackStack() }) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+        }
         Text(
             text = activity.intervals[currentIntervalIndex].name ?: "Unnamed Interval",
             style = MaterialTheme.typography.headlineMedium
