@@ -27,6 +27,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.kelvinma.activitytracker.data.Activity
 import com.example.kelvinma.activitytracker.data.ActivityRepository
+import com.example.kelvinma.activitytracker.ui.activitydetail.ActivityDetailScreen
+import com.example.kelvinma.activitytracker.ui.activitylist.ActivityListScreen
 import com.example.kelvinma.activitytracker.ui.theme.ActivityTrackerTheme
 import com.example.kelvinma.activitytracker.ui.timer.TimerScreen
 
@@ -65,47 +67,5 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-    }
-}
-
-@Composable
-fun ActivityListScreen(navController: NavController, activities: List<Activity>) {
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text(text = "Activity List", style = MaterialTheme.typography.headlineMedium)
-        activities.forEach { activity ->
-            Text(
-                text = activity.name,
-                modifier = Modifier.clickable { navController.navigate("activityDetail/${activity.name}") }
-            )
-        }
-    }
-}
-
-@Composable
-fun ActivityDetailScreen(navController: NavController, activity: Activity?) {
-    Column(modifier = Modifier.padding(16.dp)) {
-        IconButton(onClick = { navController.popBackStack() }) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-        }
-        if (activity != null) {
-            Text(text = activity.name, style = MaterialTheme.typography.headlineMedium)
-            activity.intervals.forEach { interval ->
-                Text(text = interval.name ?: "Unnamed Interval")
-            }
-            Button(onClick = { navController.navigate("timer/${activity.name}") }) {
-                Text("Start Activity")
-            }
-        } else {
-            Text(text = "Activity not found")
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    ActivityTrackerTheme {
-        val navController = rememberNavController()
-        ActivityListScreen(navController, emptyList())
     }
 }
