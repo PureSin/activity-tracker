@@ -27,7 +27,9 @@ class ActivityListScreenTest {
         )
         composeTestRule.setContent {
             val navController = rememberNavController()
-            ActivityListScreen(navController = navController, activities = activities)
+            com.example.kelvinma.activitytracker.ui.theme.ActivityTrackerTheme {
+                ActivityListScreen(navController = navController, activities = activities)
+            }
         }
 
         composeTestRule.onNodeWithText("Activity 1").assertIsDisplayed()
@@ -44,7 +46,9 @@ class ActivityListScreenTest {
         
         composeTestRule.setContent {
             val navController = rememberNavController()
-            ActivityListScreen(navController = navController, activities = activities)
+            com.example.kelvinma.activitytracker.ui.theme.ActivityTrackerTheme {
+                ActivityListScreen(navController = navController, activities = activities)
+            }
         }
         
         // Capture screenshot
