@@ -25,7 +25,9 @@ class ActivityDetailScreenTest {
         )
         composeTestRule.setContent {
             val navController = rememberNavController()
-            ActivityDetailScreen(navController = navController, activity = activity)
+            com.example.kelvinma.activitytracker.ui.theme.ActivityTrackerTheme {
+                ActivityDetailScreen(navController = navController, activity = activity)
+            }
         }
 
         composeTestRule.onNodeWithText("Test Activity").assertIsDisplayed()
