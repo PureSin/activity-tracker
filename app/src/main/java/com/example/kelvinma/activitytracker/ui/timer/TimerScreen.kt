@@ -11,6 +11,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -45,6 +46,7 @@ fun TimerScreen(activity: Activity, onFinish: () -> Unit, navController: NavCont
     val timerValue by viewModel.timerValue.collectAsState()
     val isPaused by viewModel.isPaused.collectAsState()
     val currentIntervalIndex by viewModel.currentIntervalIndex.collectAsState()
+    val progressPercentage by viewModel.progressPercentage.collectAsState()
 
     KeepScreenOn()
 
@@ -104,6 +106,40 @@ fun TimerScreen(activity: Activity, onFinish: () -> Unit, navController: NavCont
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center
                     )
+                    
+                    Spacer(modifier = Modifier.height(24.dp))
+                    
+                    // Progress Section
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Progress: ${String.format("%.1f", progressPercentage)}%",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            textAlign = TextAlign.Center
+                        )
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        LinearProgressIndicator(
+                            progress = { progressPercentage / 100f },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(8.dp),
+                            color = MaterialTheme.colorScheme.primary,
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                        )
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        Text(
+                            text = "Interval ${currentIntervalIndex + 1} of ${activity.intervals.size}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
             
