@@ -28,19 +28,30 @@ class TimerViewModel(
     private val _currentIntervalIndex = MutableStateFlow(0)
     val currentIntervalIndex: StateFlow<Int> = _currentIntervalIndex
 
+    private val _isActivityComplete = MutableStateFlow(false)
+    val isActivityComplete: StateFlow<Boolean> = _isActivityComplete
+
+    private val _progressPercentage = MutableStateFlow(0f)
+    val progressPercentage: StateFlow<Float> = _progressPercentage
+
     private var timer: CountDownTimer? = null
     private var hadPauses = false
     private var startTime = 0L
+    private var currentSession: ActivitySession? = null
 
     init {
         startTimer()
     }
 
     private fun startTimer() {
+        if (startTime == 0L) {
+            startTime = System.currentTimeMillis()
+            createInitialSession()
+        }
+        
         playSound(R.raw.interval_start)
         val interval = activity.intervals[_currentIntervalIndex.value]
         val durationMillis = interval.duration * 1000L // Assuming seconds for now
-        startTime = System.currentTimeMillis()
 
         timer = object : CountDownTimer(durationMillis, 1000) {
             override fun onTick(millisUntilFinished: Long) {
@@ -55,6 +66,18 @@ class TimerViewModel(
                 nextInterval()
             }
         }.start()
+    }
+
+    private fun createInitialSession() {
+        currentSession = ActivitySession(
+            activity_name = activity.name,
+            start_timestamp = startTime,
+            end_timestamp = startTime, // Will be updated when session ends
+            total_intervals_in_activity = activity.intervals.size,
+            intervals_completed = 0,
+            overall_progress_percentage = 0f,
+            had_pauses = false
+        )
     }
 
     fun pauseTimer() {
@@ -87,29 +110,70 @@ class TimerViewModel(
     }
 
     private fun nextInterval() {
-        if (_currentIntervalIndex.value < activity.intervals.size - 1) {
-            _currentIntervalIndex.value++
+        _currentIntervalIndex.value++
+        updateSessionProgress()
+        
+        if (_currentIntervalIndex.value < activity.intervals.size) {
             startTimer()
         } else {
             // Activity finished
+            _isActivityComplete.value = true
             playSound(R.raw.activity_complete)
             finishActivity()
         }
     }
 
-    private fun finishActivity() {
-        viewModelScope.launch {
-            val session = ActivitySession(
-                activity_name = activity.name,
-                start_timestamp = startTime,
-                end_timestamp = System.currentTimeMillis(),
-                total_intervals_in_activity = activity.intervals.size,
-                intervals_completed = _currentIntervalIndex.value + 1,
-                overall_progress_percentage = 100f,
-                had_pauses = hadPauses
+    private fun updateSessionProgress() {
+        currentSession?.let { session ->
+            val intervalsCompleted = _currentIntervalIndex.value
+            val progressPercentage = (intervalsCompleted.toFloat() / activity.intervals.size) * 100f
+            
+            _progressPercentage.value = progressPercentage
+            
+            currentSession = session.copy(
+                intervals_completed = intervalsCompleted,
+                overall_progress_percentage = progressPercentage,
+                had_pauses = hadPauses,
+                end_timestamp = System.currentTimeMillis()
             )
-            activitySessionDao.insert(session)
         }
+    }
+
+    private fun finishActivity() {
+        updateSessionProgress()
+        saveCurrentSession()
+    }
+
+    private fun saveCurrentSession() {
+        currentSession?.let { session ->
+            viewModelScope.launch {
+                try {
+                    activitySessionDao.insert(session)
+                } catch (e: Exception) {
+                    // Handle database error if needed
+                }
+            }
+        }
+    }
+
+    fun stopActivity() {
+        timer?.cancel()
+        updateSessionProgress()
+        saveCurrentSession()
+    }
+
+    private fun handleViewModelCleared() {
+        timer?.cancel()
+        // Save current progress when ViewModel is cleared (e.g., user navigates away)
+        if (!_isActivityComplete.value) {
+            updateSessionProgress()
+            saveCurrentSession()
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        handleViewModelCleared()
     }
 
     private fun playSound(resId: Int) {
