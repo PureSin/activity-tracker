@@ -3,8 +3,58 @@ intervals:
   - name: Jumping Jacks
     duration: 30
     duration_unit: seconds
-    rest_duration: 5
+    rest_duration: 10
     rest_duration_unit: seconds
   - name: Wall Sit
-    duration: 45
+    duration: 30
+    duration_unit: seconds
+    rest_duration: 10
+    rest_duration_unit: seconds
+  - name: Push-ups
+    duration: 30
+    duration_unit: seconds
+    rest_duration: 10
+    rest_duration_unit: seconds
+  - name: Abdominal Crunches
+    duration: 30
+    duration_unit: seconds
+    rest_duration: 10
+    rest_duration_unit: seconds
+  - name: Step-up onto Chair
+    duration: 30
+    duration_unit: seconds
+    rest_duration: 10
+    rest_duration_unit: seconds
+  - name: Squats
+    duration: 30
+    duration_unit: seconds
+    rest_duration: 10
+    rest_duration_unit: seconds
+  - name: Triceps Dips on Chair
+    duration: 30
+    duration_unit: seconds
+    rest_duration: 10
+    rest_duration_unit: seconds
+  - name: Plank
+    duration: 30
+    duration_unit: seconds
+    rest_duration: 10
+    rest_duration_unit: seconds
+  - name: High Knees Running in Place
+    duration: 30
+    duration_unit: seconds
+    rest_duration: 10
+    rest_duration_unit: seconds
+  - name: Lunges
+    duration: 30
+    duration_unit: seconds
+    rest_duration: 10
+    rest_duration_unit: seconds
+  - name: Push-up and Rotation
+    duration: 30
+    duration_unit: seconds
+    rest_duration: 10
+    rest_duration_unit: seconds
+  - name: Side Plank
+    duration: 30
     duration_unit: seconds

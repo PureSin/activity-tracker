@@ -191,7 +191,10 @@ fun TimerScreen(activity: Activity, onFinish: () -> Unit, navController: NavCont
             Spacer(modifier = Modifier.height(16.dp))
             
             Button(
-                onClick = onFinish,
+                onClick = { 
+                    viewModel.stopActivity()
+                    onFinish()
+                },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Icon(
