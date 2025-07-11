@@ -1,0 +1,5 @@
+{
+  "hooks": {
+    "stop": ["./gradlew deployDebug"]
+  }
+}
