@@ -1,0 +1,250 @@
+name: Stretch Routine
+intervals:
+  - name: Shoulder Backbend
+    duration: 10
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Shoulder Backbend - Bumping Movements
+    duration: 10
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Shoulder Backbend
+    duration: 20
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Shoulder Backbend - Bumping Movements
+    duration: 10
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Shoulder Backbend
+    duration: 30
+    duration_unit: seconds
+    rest_duration: 10
+    rest_duration_unit: seconds
+  - name: Spine Backbend
+    duration: 10
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Spine Backbend - Bumping Movements
+    duration: 10
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Spine Backbend
+    duration: 20
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Spine Backbend - Bumping Movements
+    duration: 10
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Spine Backbend
+    duration: 30
+    duration_unit: seconds
+    rest_duration: 10
+    rest_duration_unit: seconds
+  - name: Rear Hand Clasp
+    duration: 10
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Rear Hand Clasp - Bumping Movements
+    duration: 10
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Rear Hand Clasp
+    duration: 20
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Rear Hand Clasp - Bumping Movements
+    duration: 10
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Rear Hand Clasp
+    duration: 30
+    duration_unit: seconds
+    rest_duration: 10
+    rest_duration_unit: seconds
+  - name: Lying Cross
+    duration: 10
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Lying Cross - Bumping Movements
+    duration: 10
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Lying Cross
+    duration: 20
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Lying Cross - Bumping Movements
+    duration: 10
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Lying Cross
+    duration: 30
+    duration_unit: seconds
+    rest_duration: 10
+    rest_duration_unit: seconds
+  - name: Wrist-Biceps Stretch
+    duration: 10
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Wrist-Biceps Stretch - Bumping Movements
+    duration: 10
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Wrist-Biceps Stretch
+    duration: 20
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Wrist-Biceps Stretch - Bumping Movements
+    duration: 10
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Wrist-Biceps Stretch
+    duration: 30
+    duration_unit: seconds
+    rest_duration: 10
+    rest_duration_unit: seconds
+  - name: One-Leg Pike
+    duration: 10
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: One-Leg Pike - Bumping Movements
+    duration: 10
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: One-Leg Pike
+    duration: 20
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: One-Leg Pike - Bumping Movements
+    duration: 10
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: One-Leg Pike
+    duration: 30
+    duration_unit: seconds
+    rest_duration: 10
+    rest_duration_unit: seconds
+  - name: Kneeling Lunge
+    duration: 10
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Kneeling Lunge - Bumping Movements
+    duration: 10
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Kneeling Lunge
+    duration: 20
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Kneeling Lunge - Bumping Movements
+    duration: 10
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Kneeling Lunge
+    duration: 30
+    duration_unit: seconds
+    rest_duration: 10
+    rest_duration_unit: seconds
+  - name: Pancake
+    duration: 10
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Pancake - Bumping Movements
+    duration: 10
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Pancake
+    duration: 20
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Pancake - Bumping Movements
+    duration: 10
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Pancake
+    duration: 30
+    duration_unit: seconds
+    rest_duration: 10
+    rest_duration_unit: seconds
+  - name: Butterfly
+    duration: 10
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Butterfly - Bumping Movements
+    duration: 10
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Butterfly
+    duration: 20
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Butterfly - Bumping Movements
+    duration: 10
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Butterfly
+    duration: 30
+    duration_unit: seconds
+    rest_duration: 10
+    rest_duration_unit: seconds
+  - name: Calf Stretch
+    duration: 10
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Calf Stretch - Bumping Movements
+    duration: 10
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Calf Stretch
+    duration: 20
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Calf Stretch - Bumping Movements
+    duration: 10
+    duration_unit: seconds
+    rest_duration: 5
+    rest_duration_unit: seconds
+  - name: Calf Stretch
+    duration: 30
+    duration_unit: seconds
