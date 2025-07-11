@@ -78,19 +78,90 @@ The app will log each activity session with detailed completion status, includin
 - **User Interface:** XML layouts with Jetpack Compose (optional, for modern UI) or traditional Views. Focus on clean, readable design with clear visual and auditory feedback.
 - **File I/O:** Standard Android APIs for reading the YAML config file from external storage. Permissions for storage access will be required.
 
-## Building and Testing
+## 🚀 Development & Deployment
 
-### Build the app
+### Quick Start
+```bash
+# Build, install, and launch debug APK (complete workflow)
+./gradlew deployDebug
+
+# Build, install, and launch release APK
+./gradlew deployRelease
 ```
+
+### Build Commands
+```bash
+# Build debug APK
 ./gradlew assembleDebug
+
+# Build release APK
+./gradlew assembleRelease
+
+# Clean build
+./gradlew clean
 ```
 
-### Run unit tests
+### Installation & Deployment
+```bash
+# Install debug APK on connected device
+./gradlew installDebug
+
+# Build, install, and launch (manual approach)
+./gradlew assembleDebug installDebug && adb shell am start -n com.example.kelvinma.activitytracker/.MainActivity
+
+# Custom deployment tasks (recommended)
+./gradlew deployDebug    # Development workflow
+./gradlew deployRelease  # Production deployment
 ```
+
+### Testing Commands
+```bash
+# Run unit tests
 ./gradlew test
+
+# Run instrumented tests (requires connected device/emulator)
+./gradlew connectedAndroidTest
+
+# Run tests for specific build variant
+./gradlew testDebugUnitTest
+
+# Run lint checks
+./gradlew lint
 ```
 
-### Run instrumentation tests
+### Quality Assurance Pipeline
+```bash
+# Complete QA workflow
+./gradlew clean test lint assembleDebug
+
+# Pre-release validation
+./gradlew clean test lint assembleRelease
 ```
-./gradlew connectedAndroidTest
-```
+
+## 📱 Current Features
+
+### ✅ Implemented
+- **Session Tracking**: Room database with comprehensive activity completion logging
+- **Material 3 UI**: Modern design with custom app icon and visual feedback
+- **Timer System**: CountDownTimer with audio cues and pause/resume functionality
+- **Activity Management**: YAML-based configuration with multiple workout types
+- **Progress Indicators**: Real-time progress tracking and daily completion status
+- **Workout Content**: 
+  - Complete 7-minute workout (12 exercises from ACSM study)
+  - Comprehensive stretch routine (10 exercises with progressive timing)
+  - Study session (Pomodoro-style)
+
+### 🎯 Key Features
+- **Duration Display**: Smart time formatting in activity list (e.g., "7m 10s")
+- **Daily Completion**: Green checkmarks for activities completed today
+- **Database Integration**: Persistent session history with timestamps and progress
+- **Reactive UI**: Real-time updates using Flow and collectAsState
+- **Custom Icon**: Professional stopwatch-themed app icon
+- **Comprehensive Testing**: Unit tests and UI tests with database validation
+
+### 🏗️ Architecture
+- **MVVM Pattern**: ViewModel with database integration
+- **Room Database**: Activity session persistence with reactive queries
+- **Jetpack Compose**: Modern UI with Material 3 design system
+- **Repository Pattern**: Clean data access layer
+- **YAML Configuration**: Flexible activity definition system

@@ -44,6 +44,18 @@ Activity Tracker is an Android application for managing and executing interval-b
 ./gradlew jacocoTestReport
 ```
 
+### Deployment Commands
+```bash
+# Build, install, and launch debug APK (complete workflow)
+./gradlew deployDebug
+
+# Build, install, and launch release APK
+./gradlew deployRelease
+
+# Alternative: Manual command for build, install, and launch
+./gradlew assembleDebug installDebug && adb shell am start -n com.example.kelvinma.activitytracker/.MainActivity
+```
+
 ## Architecture Overview
 
 ### Core Components
