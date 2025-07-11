@@ -8,9 +8,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -19,11 +21,31 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.kelvinma.activitytracker.data.Activity
+import com.example.kelvinma.activitytracker.data.ActivitySessionDao
+import java.util.Calendar
+
+fun getTodayTimestamps(): Pair<Long, Long> {
+    val calendar = Calendar.getInstance()
+    calendar.set(Calendar.HOUR_OF_DAY, 0)
+    calendar.set(Calendar.MINUTE, 0)
+    calendar.set(Calendar.SECOND, 0)
+    calendar.set(Calendar.MILLISECOND, 0)
+    val startOfDay = calendar.timeInMillis
+    
+    calendar.add(Calendar.DAY_OF_MONTH, 1)
+    val endOfDay = calendar.timeInMillis
+    
+    return Pair(startOfDay, endOfDay)
+}
 
 fun calculateTotalDuration(activity: Activity): String {
     var totalSeconds = 0
@@ -66,7 +88,9 @@ fun calculateTotalDuration(activity: Activity): String {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ActivityListScreen(navController: NavController, activities: List<Activity>) {
+fun ActivityListScreen(navController: NavController, activities: List<Activity>, activitySessionDao: ActivitySessionDao) {
+    val (startOfDay, endOfDay) = remember { getTodayTimestamps() }
+    val todaySessions by activitySessionDao.getSessionsForDay(startOfDay, endOfDay).collectAsState(initial = emptyList())
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -83,6 +107,9 @@ fun ActivityListScreen(navController: NavController, activities: List<Activity>)
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(activities) { activity ->
+                val isCompletedToday = todaySessions.any { session ->
+                    session.activity_name == activity.name && session.intervals_completed > 0
+                }
                 Card(
                     onClick = { navController.navigate("activityDetail/${activity.name}") },
                     modifier = Modifier.fillMaxWidth(),
@@ -93,30 +120,46 @@ fun ActivityListScreen(navController: NavController, activities: List<Activity>)
                         defaultElevation = 2.dp
                     )
                 ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
+                    Row(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.Top
                     ) {
-                        Text(
-                            text = activity.name,
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        
-                        Spacer(modifier = Modifier.height(8.dp))
-                        
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
+                        Column(
+                            modifier = Modifier.weight(1f)
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.PlayArrow,
-                                contentDescription = "Duration",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                modifier = Modifier.padding(end = 4.dp)
-                            )
                             Text(
-                                text = calculateTotalDuration(activity),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                text = activity.name,
+                                style = MaterialTheme.typography.headlineSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            
+                            Spacer(modifier = Modifier.height(8.dp))
+                            
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.PlayArrow,
+                                    contentDescription = "Duration",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                    modifier = Modifier.padding(end = 4.dp)
+                                )
+                                Text(
+                                    text = calculateTotalDuration(activity),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                )
+                            }
+                        }
+                        
+                        if (isCompletedToday) {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = "Completed today",
+                                tint = Color(0xFF4CAF50), // Green color
+                                modifier = Modifier.padding(start = 8.dp)
                             )
                         }
                     }

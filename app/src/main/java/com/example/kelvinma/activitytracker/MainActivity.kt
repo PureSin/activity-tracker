@@ -27,6 +27,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.kelvinma.activitytracker.data.Activity
 import com.example.kelvinma.activitytracker.data.ActivityRepository
+import com.example.kelvinma.activitytracker.data.AppDatabase
 import com.example.kelvinma.activitytracker.ui.activitydetail.ActivityDetailScreen
 import com.example.kelvinma.activitytracker.ui.activitylist.ActivityListScreen
 import com.example.kelvinma.activitytracker.ui.theme.ActivityTrackerTheme
@@ -44,10 +45,11 @@ class MainActivity : ComponentActivity() {
                     val context = LocalContext.current
                     val activityRepository = remember { ActivityRepository(context) }
                     val activities = remember { activityRepository.getActivities() }
+                    val database = remember { AppDatabase.getDatabase(context) }
                     val navController = rememberNavController()
                     NavHost(navController = navController, startDestination = "activityList") {
                         composable("activityList") {
-                            ActivityListScreen(navController, activities)
+                            ActivityListScreen(navController, activities, database.activitySessionDao())
                         }
                         composable("activityDetail/{activityName}") { backStackEntry ->
                             val activityName = backStackEntry.arguments?.getString("activityName")
