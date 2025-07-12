@@ -12,12 +12,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -98,12 +100,26 @@ fun ActivityListScreen(navController: NavController, activities: List<Activity>,
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Text(
-            text = "Activity List",
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Activity List",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            IconButton(onClick = { navController.navigate("analytics") }) {
+                Icon(
+                    Icons.Default.MoreVert,
+                    contentDescription = "Analytics",
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(16.dp))
         
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(8.dp)

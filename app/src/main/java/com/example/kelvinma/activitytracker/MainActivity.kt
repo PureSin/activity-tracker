@@ -30,6 +30,7 @@ import com.example.kelvinma.activitytracker.data.ActivityRepository
 import com.example.kelvinma.activitytracker.data.AppDatabase
 import com.example.kelvinma.activitytracker.ui.activitydetail.ActivityDetailScreen
 import com.example.kelvinma.activitytracker.ui.activitylist.ActivityListScreen
+import com.example.kelvinma.activitytracker.ui.analytics.AnalyticsScreen
 import com.example.kelvinma.activitytracker.ui.theme.ActivityTrackerTheme
 import com.example.kelvinma.activitytracker.ui.timer.TimerScreen
 
@@ -64,6 +65,9 @@ class MainActivity : ComponentActivity() {
                                     navController.popBackStack()
                                 }, navController)
                             }
+                        }
+                        composable("analytics") {
+                            AnalyticsScreen(navController)
                         }
                     }
                 }

@@ -69,4 +69,51 @@ interface ActivitySessionDao {
         WHERE completion_type = 'EARLY'
     """)
     suspend fun getEarlyCompletionCount(): Int
+
+    @Query("""
+        SELECT SUM(end_timestamp - start_timestamp) 
+        FROM activity_sessions 
+        WHERE intervals_completed > 0
+    """)
+    suspend fun getTotalTimeInvested(): Long?
+
+    @Query("""
+        SELECT activity_name, COUNT(*) as total_sessions, 
+               SUM(CASE WHEN intervals_completed = total_intervals_in_activity OR completion_type = 'EARLY' THEN 1 ELSE 0 END) as completions,
+               AVG(overall_progress_percentage) as avg_progress,
+               SUM(end_timestamp - start_timestamp) as total_time
+        FROM activity_sessions 
+        GROUP BY activity_name
+    """)
+    suspend fun getActivityPerformanceStats(): List<ActivityStatsRaw>
+
+    @Query("""
+        SELECT * FROM activity_sessions 
+        WHERE date(start_timestamp/1000, 'unixepoch') >= date('now', '-30 days')
+        ORDER BY start_timestamp DESC
+    """)
+    suspend fun getSessionsLast30Days(): List<ActivitySession>
+
+    @Query("""
+        SELECT DISTINCT date(start_timestamp/1000, 'unixepoch') as date,
+               SUM(CASE WHEN intervals_completed = total_intervals_in_activity OR completion_type = 'EARLY' THEN 1 ELSE 0 END) as completed_sessions
+        FROM activity_sessions 
+        WHERE start_timestamp >= :startTimestamp
+        GROUP BY date(start_timestamp/1000, 'unixepoch')
+        ORDER BY date DESC
+    """)
+    suspend fun getDailyCompletionData(startTimestamp: Long): List<DailyCompletionRaw>
 }
+
+data class ActivityStatsRaw(
+    val activity_name: String,
+    val total_sessions: Int,
+    val completions: Int,
+    val avg_progress: Float,
+    val total_time: Long
+)
+
+data class DailyCompletionRaw(
+    val date: String,
+    val completed_sessions: Int
+)
