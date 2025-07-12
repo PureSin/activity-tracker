@@ -40,7 +40,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.kelvinma.activitytracker.data.AppDatabase
 import com.example.kelvinma.activitytracker.ui.analytics.components.CompletionChart
-import com.example.kelvinma.activitytracker.ui.analytics.components.InsightCards
+import com.example.kelvinma.activitytracker.ui.analytics.components.InsightCard
 import com.example.kelvinma.activitytracker.ui.analytics.components.MetricsCard
 import com.example.kelvinma.activitytracker.ui.analytics.components.StreakDisplay
 
@@ -191,7 +191,20 @@ fun AnalyticsScreen(navController: NavController) {
                     // Insights
                     if (analyticsData.insights.isNotEmpty()) {
                         item {
-                            InsightCards(insights = analyticsData.insights)
+                            Text(
+                                text = "Insights & Recommendations",
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+                        }
+                        
+                        items(analyticsData.insights) { insight ->
+                            InsightCard(
+                                insight = insight,
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
                         }
                     }
                 }
