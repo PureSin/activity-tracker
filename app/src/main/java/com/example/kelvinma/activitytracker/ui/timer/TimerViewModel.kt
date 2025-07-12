@@ -9,6 +9,7 @@ import com.example.kelvinma.activitytracker.R
 import com.example.kelvinma.activitytracker.data.Activity
 import com.example.kelvinma.activitytracker.data.ActivitySession
 import com.example.kelvinma.activitytracker.data.ActivitySessionDao
+import com.example.kelvinma.activitytracker.data.CompletionType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -141,6 +142,8 @@ class TimerViewModel(
 
     private fun finishActivity() {
         updateSessionProgress()
+        // Mark as natural completion when all intervals are finished
+        currentSession = currentSession?.copy(completion_type = CompletionType.NATURAL)
         saveCurrentSession()
     }
 
@@ -159,6 +162,8 @@ class TimerViewModel(
     fun stopActivity() {
         timer?.cancel()
         updateSessionProgress()
+        // Mark as early completion when user manually finishes activity
+        currentSession = currentSession?.copy(completion_type = CompletionType.EARLY)
         saveCurrentSession()
     }
 

@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.kelvinma.activitytracker.data.Activity
 import com.example.kelvinma.activitytracker.data.ActivitySessionDao
+import com.example.kelvinma.activitytracker.data.CompletionStatus
+import com.example.kelvinma.activitytracker.data.getCompletionStatus
 import java.util.Calendar
 
 fun getTodayTimestamps(): Pair<Long, Long> {
@@ -108,7 +110,10 @@ fun ActivityListScreen(navController: NavController, activities: List<Activity>,
         ) {
             items(activities) { activity ->
                 val isCompletedToday = todaySessions.any { session ->
-                    session.activity_name == activity.name && session.intervals_completed > 0
+                    session.activity_name == activity.name && 
+                    (session.getCompletionStatus() == CompletionStatus.COMPLETED_FULL ||
+                     session.getCompletionStatus() == CompletionStatus.COMPLETED_FULL_WITH_PAUSE ||
+                     session.getCompletionStatus() == CompletionStatus.COMPLETED_EARLY)
                 }
                 Card(
                     onClick = { navController.navigate("activityDetail/${activity.name}") },

@@ -36,7 +36,11 @@ interface ActivitySessionDao {
     """)
     fun getSessionsForActivityAndDay(activityName: String, startOfDay: Long, endOfDay: Long): Flow<List<ActivitySession>>
 
-    @Query("SELECT COUNT(*) FROM activity_sessions WHERE intervals_completed > 0")
+    @Query("""
+        SELECT COUNT(*) FROM activity_sessions 
+        WHERE intervals_completed > 0 
+        OR completion_type = 'EARLY'
+    """)
     suspend fun getTotalCompletedSessions(): Int
 
     @Query("""
@@ -59,4 +63,10 @@ interface ActivitySessionDao {
         AND intervals_completed < total_intervals_in_activity
     """)
     suspend fun getPartialCompletionCount(): Int
+
+    @Query("""
+        SELECT COUNT(*) FROM activity_sessions 
+        WHERE completion_type = 'EARLY'
+    """)
+    suspend fun getEarlyCompletionCount(): Int
 }
