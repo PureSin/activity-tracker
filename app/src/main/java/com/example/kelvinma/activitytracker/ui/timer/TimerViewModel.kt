@@ -10,9 +10,11 @@ import com.example.kelvinma.activitytracker.data.Activity
 import com.example.kelvinma.activitytracker.data.ActivitySession
 import com.example.kelvinma.activitytracker.data.ActivitySessionDao
 import com.example.kelvinma.activitytracker.data.CompletionType
+import com.example.kelvinma.activitytracker.util.Logger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.io.IOException
 
 class TimerViewModel(
     private val activity: Activity,
@@ -41,32 +43,71 @@ class TimerViewModel(
     private var currentSession: ActivitySession? = null
 
     init {
+        Logger.i(Logger.TAG_TIMER, "Initializing timer for activity: ${activity.name}")
         startTimer()
     }
 
     private fun startTimer() {
-        if (startTime == 0L) {
-            startTime = System.currentTimeMillis()
-            createInitialSession()
-        }
-        
-        playSound(R.raw.interval_start)
-        val interval = activity.intervals[_currentIntervalIndex.value]
-        val durationMillis = interval.duration * 1000L // Assuming seconds for now
-
-        timer = object : CountDownTimer(durationMillis, 1000) {
-            override fun onTick(millisUntilFinished: Long) {
-                _timerValue.value = millisUntilFinished
-                if (millisUntilFinished / 1000 <= 3) {
-                    playSound(R.raw.progress_beep)
+        try {
+            if (startTime == 0L) {
+                startTime = System.currentTimeMillis()
+                createInitialSession()
+                Logger.logTimerEvent("Session started", "activity: ${activity.name}")
+            }
+            
+            val intervalIndex = _currentIntervalIndex.value
+            if (intervalIndex >= activity.intervals.size) {
+                Logger.e(Logger.TAG_TIMER, "Invalid interval index: $intervalIndex, max: ${activity.intervals.size - 1}")
+                return
+            }
+            
+            val interval = activity.intervals[intervalIndex]
+            Logger.logTimerEvent("Starting interval", "index: $intervalIndex, name: ${interval.name}")
+            
+            playSound(R.raw.interval_start)
+            
+            // Convert duration to milliseconds based on unit
+            val durationMillis = convertToMilliseconds(interval.duration, interval.duration_unit)
+            
+            timer?.cancel() // Cancel any existing timer
+            timer = object : CountDownTimer(durationMillis, 1000) {
+                override fun onTick(millisUntilFinished: Long) {
+                    _timerValue.value = millisUntilFinished
+                    if (millisUntilFinished / 1000 <= 3) {
+                        playSound(R.raw.progress_beep)
+                    }
                 }
-            }
 
-            override fun onFinish() {
-                playSound(R.raw.interval_end)
-                nextInterval()
+                override fun onFinish() {
+                    Logger.logTimerEvent("Interval completed", "index: $intervalIndex")
+                    playSound(R.raw.interval_end)
+                    nextInterval()
+                }
+            }.start()
+            
+        } catch (e: Exception) {
+            Logger.e(Logger.TAG_TIMER, "Error starting timer", e)
+            // Attempt to continue with next interval if possible
+            if (_currentIntervalIndex.value < activity.intervals.size - 1) {
+                _currentIntervalIndex.value++
+                startTimer()
             }
-        }.start()
+        }
+    }
+    
+    /**
+     * Converts duration to milliseconds based on the unit.
+     */
+    private fun convertToMilliseconds(duration: Int, unit: String): Long {
+        return when (unit.lowercase()) {
+            "seconds" -> duration * 1000L
+            "minutes" -> duration * 60 * 1000L
+            "hours" -> duration * 60 * 60 * 1000L
+            else -> {
+                Logger.w(Logger.TAG_TIMER, "Unknown duration unit: $unit, defaulting to seconds")
+                duration * 1000L
+            }
+        }
     }
 
     private fun createInitialSession() {
@@ -82,27 +123,41 @@ class TimerViewModel(
     }
 
     fun pauseTimer() {
-        timer?.cancel()
-        _isPaused.value = true
-        hadPauses = true
+        try {
+            timer?.cancel()
+            _isPaused.value = true
+            hadPauses = true
+            Logger.logTimerEvent("Timer paused", "interval: ${_currentIntervalIndex.value}")
+        } catch (e: Exception) {
+            Logger.e(Logger.TAG_TIMER, "Error pausing timer", e)
+        }
     }
 
     fun resumeTimer() {
-        _isPaused.value = false
-        val remainingTime = _timerValue.value
-        timer = object : CountDownTimer(remainingTime, 1000) {
-            override fun onTick(millisUntilFinished: Long) {
-                _timerValue.value = millisUntilFinished
-                if (millisUntilFinished / 1000 <= 3) {
-                    playSound(R.raw.progress_beep)
+        try {
+            _isPaused.value = false
+            val remainingTime = _timerValue.value
+            Logger.logTimerEvent("Timer resumed", "remaining: ${remainingTime}ms")
+            
+            timer = object : CountDownTimer(remainingTime, 1000) {
+                override fun onTick(millisUntilFinished: Long) {
+                    _timerValue.value = millisUntilFinished
+                    if (millisUntilFinished / 1000 <= 3) {
+                        playSound(R.raw.progress_beep)
+                    }
                 }
-            }
 
-            override fun onFinish() {
-                playSound(R.raw.interval_end)
-                nextInterval()
-            }
-        }.start()
+                override fun onFinish() {
+                    Logger.logTimerEvent("Interval completed after resume", "index: ${_currentIntervalIndex.value}")
+                    playSound(R.raw.interval_end)
+                    nextInterval()
+                }
+            }.start()
+        } catch (e: Exception) {
+            Logger.e(Logger.TAG_TIMER, "Error resuming timer", e)
+            // Try to restart from current interval
+            startTimer()
+        }
     }
 
     fun skipInterval() {
@@ -151,11 +206,16 @@ class TimerViewModel(
         currentSession?.let { session ->
             viewModelScope.launch {
                 try {
+                    Logger.d(Logger.TAG_DATABASE, "Saving session for activity: ${session.activity_name}")
                     activitySessionDao.insert(session)
+                    Logger.logDatabaseOperation("Insert session for ${session.activity_name}", true)
                 } catch (e: Exception) {
-                    // Handle database error if needed
+                    Logger.logDatabaseOperation("Insert session for ${session.activity_name}", false, e)
+                    Logger.e(Logger.TAG_TIMER, "Failed to save session to database", e)
                 }
             }
+        } ?: run {
+            Logger.w(Logger.TAG_TIMER, "Attempted to save null session")
         }
     }
 
@@ -182,10 +242,45 @@ class TimerViewModel(
     }
 
     private fun playSound(resId: Int) {
-        val mediaPlayer = MediaPlayer.create(context, resId)
-        mediaPlayer?.setOnCompletionListener { mp ->
-            mp.release()
+        try {
+            Logger.logAudioEvent("Attempting to play sound", resId)
+            val mediaPlayer = MediaPlayer.create(context, resId)
+            
+            if (mediaPlayer == null) {
+                Logger.logAudioEvent("Failed to create MediaPlayer - resource not found", resId, 
+                    IOException("MediaPlayer.create returned null for resource $resId"))
+                return
+            }
+            
+            mediaPlayer.setOnCompletionListener { mp ->
+                try {
+                    mp.release()
+                    Logger.logAudioEvent("Sound playback completed and released", resId)
+                } catch (e: Exception) {
+                    Logger.logAudioEvent("Error releasing MediaPlayer", resId, e)
+                }
+            }
+            
+            mediaPlayer.setOnErrorListener { mp, what, extra ->
+                Logger.logAudioEvent("MediaPlayer error: what=$what, extra=$extra", resId, 
+                    RuntimeException("MediaPlayer error"))
+                try {
+                    mp.release()
+                } catch (e: Exception) {
+                    Logger.e(Logger.TAG_AUDIO, "Error releasing MediaPlayer after error", e)
+                }
+                true // Error handled
+            }
+            
+            mediaPlayer.start()
+            Logger.logAudioEvent("Sound playback started", resId)
+            
+        } catch (e: SecurityException) {
+            Logger.logAudioEvent("Security exception playing sound", resId, e)
+        } catch (e: IllegalStateException) {
+            Logger.logAudioEvent("IllegalState exception playing sound", resId, e)
+        } catch (e: Exception) {
+            Logger.logAudioEvent("Unexpected error playing sound", resId, e)
         }
-        mediaPlayer?.start()
     }
 }
