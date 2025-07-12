@@ -1,0 +1,5 @@
+name: Meditation
+intervals:
+  - name: Mindfulness Meditation
+    duration: 10
+    duration_unit: minutes

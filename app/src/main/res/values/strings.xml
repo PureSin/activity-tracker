@@ -1,6 +1,46 @@
 <resources>
     <string name="app_name">ActivityTracker</string>
     <string name="action_settings">Settings</string>
+    
+    <!-- Error Messages -->
+    <string name="error_generic_title">Error</string>
+    <string name="error_loading_title">Loading Activity Tracker…</string>
+    <string name="error_retry_button">Retry</string>
+    
+    <!-- App Initialization Errors -->
+    <string name="error_no_activities_found">No activities found. Please check your activity files.</string>
+    <string name="error_app_init_failed">Failed to initialize app: %1$s</string>
+    <string name="error_database_init_failed">Failed to initialize database</string>
+    <string name="error_activities_load_failed">Failed to load activities</string>
+    
+    <!-- Navigation Errors -->
+    <string name="error_invalid_activity_name">Invalid activity name</string>
+    <string name="error_activity_not_found">Activity \'%1$s\' not found</string>
+    <string name="error_activity_list_load_failed">Failed to load activity list: %1$s</string>
+    <string name="error_activity_details_load_failed">Failed to load activity details: %1$s</string>
+    <string name="error_timer_start_failed">Failed to start timer: %1$s</string>
+    <string name="error_analytics_load_failed">Failed to load analytics: %1$s</string>
+    
+    <!-- Analytics Errors -->
+    <string name="error_analytics_partial_data">Some analytics data may be incomplete due to database errors</string>
+    <string name="error_analytics_calculation_failed">Failed to calculate analytics: %1$s</string>
+    
+    <!-- YAML Parsing Errors -->
+    <string name="error_yaml_file_empty">YAML file is empty: %1$s</string>
+    <string name="error_yaml_file_not_found">YAML file not found: %1$s</string>
+    <string name="error_yaml_io_error">IO error reading YAML file: %1$s</string>
+    <string name="error_yaml_invalid_format">Invalid YAML format in file: %1$s</string>
+    <string name="error_yaml_invalid_data">Invalid activity data in file: %1$s</string>
+    <string name="error_yaml_unexpected_error">Unexpected error parsing YAML file: %1$s</string>
+    
+    <!-- Activity Validation Errors -->
+    <string name="error_activity_name_blank">Activity name cannot be blank in file: %1$s</string>
+    <string name="error_activity_no_intervals">Activity must have at least one interval in file: %1$s</string>
+    <string name="error_interval_name_blank">Interval %1$d name cannot be blank in file: %2$s</string>
+    <string name="error_interval_duration_invalid">Interval \'%1$s\' duration must be positive in file: %2$s</string>
+    <string name="error_interval_duration_unit_invalid">Invalid duration unit \'%1$s\' for interval \'%2$s\' in file: %3$s</string>
+    <string name="error_interval_rest_duration_negative">Rest duration cannot be negative for interval \'%1$s\' in file: %2$s</string>
+    <string name="error_interval_rest_unit_invalid">Invalid rest duration unit \'%1$s\' for interval \'%2$s\' in file: %3$s</string>
     <!-- Strings used for fragments for navigation -->
     <string name="first_fragment_label">First Fragment</string>
     <string name="second_fragment_label">Second Fragment</string>

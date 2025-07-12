@@ -8,6 +8,10 @@ import com.example.kelvinma.activitytracker.data.ActivityStatsRaw
 import com.example.kelvinma.activitytracker.data.CompletionStatus
 import com.example.kelvinma.activitytracker.data.CompletionType
 import com.example.kelvinma.activitytracker.data.getCompletionStatus
+import com.example.kelvinma.activitytracker.util.Logger
+import com.example.kelvinma.activitytracker.util.Result
+import com.example.kelvinma.activitytracker.util.safeSuspendCall
+import com.example.kelvinma.activitytracker.R
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -15,7 +19,8 @@ import java.util.*
 import kotlin.math.roundToInt
 
 class AnalyticsViewModel(
-    private val activitySessionDao: ActivitySessionDao
+    private val activitySessionDao: ActivitySessionDao,
+    private val context: android.content.Context
 ) : ViewModel() {
 
     private val _analyticsData = MutableStateFlow(AnalyticsData())
@@ -24,22 +29,60 @@ class AnalyticsViewModel(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage
+
     init {
+        Logger.d(Logger.TAG_ANALYTICS, "Initializing AnalyticsViewModel")
         loadAnalyticsData()
     }
 
     private fun loadAnalyticsData() {
         viewModelScope.launch {
             _isLoading.value = true
+            _errorMessage.value = null
+            Logger.d(Logger.TAG_ANALYTICS, "Loading analytics data")
+            
+            val sessionsResult = safeSuspendCall { 
+                activitySessionDao.getSessionsLast30Days() 
+            }
+            
+            val activityStatsResult = safeSuspendCall { 
+                activitySessionDao.getActivityPerformanceStats() 
+            }
+            
+            val totalTimeResult = safeSuspendCall { 
+                activitySessionDao.getTotalTimeInvested() ?: 0L 
+            }
+
             try {
-                val sessions = activitySessionDao.getSessionsLast30Days()
-                val activityStats = activitySessionDao.getActivityPerformanceStats()
-                val totalTimeInvested = activitySessionDao.getTotalTimeInvested() ?: 0L
+                val sessions = sessionsResult.onError { throwable ->
+                    Logger.e(Logger.TAG_ANALYTICS, "Failed to load sessions", throwable)
+                }.getOrDefault(emptyList())
+
+                val activityStats = activityStatsResult.onError { throwable ->
+                    Logger.e(Logger.TAG_ANALYTICS, "Failed to load activity stats", throwable)
+                }.getOrDefault(emptyList())
+
+                val totalTimeInvested = totalTimeResult.onError { throwable ->
+                    Logger.e(Logger.TAG_ANALYTICS, "Failed to load total time invested", throwable)
+                }.getOrDefault(0L)
+
+                val hasErrors = sessionsResult.isError || activityStatsResult.isError || totalTimeResult.isError
+                
+                if (hasErrors) {
+                    _errorMessage.value = context.getString(R.string.error_analytics_partial_data)
+                    Logger.w(Logger.TAG_ANALYTICS, "Analytics loaded with partial data due to errors")
+                } else {
+                    Logger.i(Logger.TAG_ANALYTICS, "Analytics data loaded successfully: ${sessions.size} sessions, ${activityStats.size} activities")
+                }
 
                 val analyticsData = calculateAnalytics(sessions, activityStats, totalTimeInvested)
                 _analyticsData.value = analyticsData
+                
             } catch (e: Exception) {
-                // Handle error - could emit error state or use default data
+                Logger.e(Logger.TAG_ANALYTICS, "Error calculating analytics", e)
+                _errorMessage.value = context.getString(R.string.error_analytics_calculation_failed, e.message ?: "Unknown error")
                 _analyticsData.value = AnalyticsData()
             } finally {
                 _isLoading.value = false
@@ -52,21 +95,31 @@ class AnalyticsViewModel(
         activityStats: List<ActivityStatsRaw>,
         totalTimeInvested: Long
     ): AnalyticsData {
-        val completionBreakdown = calculateCompletionBreakdown(sessions)
-        val activityPerformance = calculateActivityPerformance(activityStats)
-        val streakData = calculateStreakData(sessions)
-        val insights = generateInsights(sessions, completionBreakdown, streakData)
+        return try {
+            Logger.d(Logger.TAG_ANALYTICS, "Calculating analytics for ${sessions.size} sessions and ${activityStats.size} activities")
+            
+            val completionBreakdown = calculateCompletionBreakdown(sessions)
+            val activityPerformance = calculateActivityPerformance(activityStats)
+            val streakData = calculateStreakData(sessions)
+            val insights = generateInsights(sessions, completionBreakdown, streakData)
 
-        return AnalyticsData(
-            totalSessions = sessions.size,
-            completionRate = completionBreakdown.completionRate,
-            currentStreak = streakData.first,
-            longestStreak = streakData.second,
-            timeInvested = totalTimeInvested,
-            completionBreakdown = completionBreakdown,
-            activityPerformance = activityPerformance,
-            insights = insights
-        )
+            Logger.d(Logger.TAG_ANALYTICS, "Analytics calculated: completion rate ${completionBreakdown.completionRate}%, current streak ${streakData.first}")
+
+            AnalyticsData(
+                totalSessions = sessions.size,
+                completionRate = completionBreakdown.completionRate,
+                currentStreak = streakData.first,
+                longestStreak = streakData.second,
+                timeInvested = totalTimeInvested,
+                completionBreakdown = completionBreakdown,
+                activityPerformance = activityPerformance,
+                insights = insights
+            )
+        } catch (e: Exception) {
+            Logger.e(Logger.TAG_ANALYTICS, "Error in calculateAnalytics", e)
+            // Return empty analytics data as fallback
+            AnalyticsData()
+        }
     }
 
     private fun calculateCompletionBreakdown(sessions: List<ActivitySession>): CompletionBreakdown {
@@ -90,16 +143,31 @@ class AnalyticsViewModel(
     }
 
     private fun calculateActivityPerformance(activityStats: List<ActivityStatsRaw>): List<ActivityPerformance> {
-        return activityStats.map { stats ->
-            ActivityPerformance(
-                activityName = stats.activity_name,
-                totalSessions = stats.total_sessions,
-                completions = stats.completions,
-                completionRate = if (stats.total_sessions > 0) 
-                    (stats.completions.toFloat() / stats.total_sessions) * 100f else 0f,
-                averageProgress = stats.avg_progress,
-                totalTimeSpent = stats.total_time
-            )
+        return try {
+            activityStats.map { stats ->
+                val completionRate = if (stats.total_sessions > 0) {
+                    (stats.completions.toFloat() / stats.total_sessions) * 100f
+                } else {
+                    0f
+                }
+                
+                // Validate data ranges
+                val validatedCompletionRate = completionRate.coerceIn(0f, 100f)
+                val validatedProgress = stats.avg_progress.coerceIn(0f, 100f)
+                val validatedTimeSpent = maxOf(0L, stats.total_time)
+                
+                ActivityPerformance(
+                    activityName = stats.activity_name,
+                    totalSessions = maxOf(0, stats.total_sessions),
+                    completions = maxOf(0, stats.completions),
+                    completionRate = validatedCompletionRate,
+                    averageProgress = validatedProgress,
+                    totalTimeSpent = validatedTimeSpent
+                )
+            }
+        } catch (e: Exception) {
+            Logger.e(Logger.TAG_ANALYTICS, "Error calculating activity performance", e)
+            emptyList()
         }
     }
 

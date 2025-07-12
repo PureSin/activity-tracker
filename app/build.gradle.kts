@@ -67,6 +67,14 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
 
     testImplementation(libs.junit)
+    testImplementation("org.mockito:mockito-core:4.8.0")
+    testImplementation("org.mockito:mockito-inline:4.8.0")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:4.1.0")
+    testImplementation("androidx.test.ext:junit:1.1.5")
+    testImplementation("androidx.test:core:1.5.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
+    
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -74,6 +82,8 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.5.8")
     androidTestImplementation("androidx.test:runner:1.5.2")
     androidTestImplementation("androidx.test:rules:1.5.0")
+    androidTestImplementation("org.mockito:mockito-android:4.8.0")
+    
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
