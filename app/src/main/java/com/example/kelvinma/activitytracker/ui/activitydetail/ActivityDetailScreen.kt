@@ -117,7 +117,7 @@ fun ActivityDetailScreen(navController: NavController, activity: Activity?) {
                                     color = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                                 Text(
-                                    text = "${stats.fullCompletions + stats.fullCompletionsWithPause}",
+                                    text = "${stats.fullCompletions + stats.fullCompletionsWithPause + stats.earlyCompletions}",
                                     style = MaterialTheme.typography.headlineSmall,
                                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                                     fontWeight = FontWeight.Bold
@@ -159,6 +159,7 @@ fun ActivityDetailScreen(navController: NavController, activity: Activity?) {
                             Text(
                                 text = "• Full completions: ${stats.fullCompletions}\n" +
                                       "• Completed with pauses: ${stats.fullCompletionsWithPause}\n" +
+                                      "• Early completions: ${stats.earlyCompletions}\n" +
                                       "• Partial completions: ${stats.partialCompletions}",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer

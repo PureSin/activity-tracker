@@ -77,3 +77,37 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
+
+// Custom task to build, install, and launch the app
+tasks.register("deployDebug") {
+    group = "deployment"
+    description = "Builds, installs, and launches the debug APK"
+    
+    dependsOn("assembleDebug", "installDebug")
+    
+    doLast {
+        val packageName = android.defaultConfig.applicationId
+        val activityName = "$packageName.MainActivity"
+        
+        exec {
+            commandLine("adb", "shell", "am", "start", "-n", "$packageName/$activityName")
+        }
+    }
+}
+
+// Custom task for release version
+tasks.register("deployRelease") {
+    group = "deployment"
+    description = "Builds, installs, and launches the release APK"
+    
+    dependsOn("assembleRelease", "installRelease")
+    
+    doLast {
+        val packageName = android.defaultConfig.applicationId
+        val activityName = "$packageName.MainActivity"
+        
+        exec {
+            commandLine("adb", "shell", "am", "start", "-n", "$packageName/$activityName")
+        }
+    }
+}

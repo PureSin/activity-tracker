@@ -14,6 +14,7 @@ data class ActivityStats(
     val totalSessions: Int = 0,
     val fullCompletions: Int = 0,
     val fullCompletionsWithPause: Int = 0,
+    val earlyCompletions: Int = 0,
     val partialCompletions: Int = 0,
     val averageProgress: Float = 0f
 )
@@ -40,6 +41,9 @@ class ActivityDetailViewModel(
                     val fullCompletionsWithPause = sessions.count { 
                         it.getCompletionStatus() == CompletionStatus.COMPLETED_FULL_WITH_PAUSE 
                     }
+                    val earlyCompletions = sessions.count { 
+                        it.getCompletionStatus() == CompletionStatus.COMPLETED_EARLY 
+                    }
                     val partialCompletions = sessions.count { 
                         it.getCompletionStatus() == CompletionStatus.PARTIAL_COMPLETION 
                     }
@@ -49,6 +53,7 @@ class ActivityDetailViewModel(
                         totalSessions = sessions.size,
                         fullCompletions = fullCompletions,
                         fullCompletionsWithPause = fullCompletionsWithPause,
+                        earlyCompletions = earlyCompletions,
                         partialCompletions = partialCompletions,
                         averageProgress = averageProgress
                     )

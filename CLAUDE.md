@@ -44,6 +44,34 @@ Activity Tracker is an Android application for managing and executing interval-b
 ./gradlew jacocoTestReport
 ```
 
+### Deployment Commands
+```bash
+# Build, install, and launch debug APK (complete workflow)
+./gradlew deployDebug
+
+# Build, install, and launch release APK
+./gradlew deployRelease
+
+# Alternative: Manual command for build, install, and launch
+./gradlew assembleDebug installDebug && adb shell am start -n com.example.kelvinma.activitytracker/.MainActivity
+```
+
+### Claude Code Hooks
+The project includes a `.claude.json` file configured with hooks for automatic deployment:
+
+```json
+{
+  "hooks": {
+    "stop": ["./gradlew deployDebug"]
+  }
+}
+```
+
+**What this does:**
+- Automatically runs `./gradlew deployDebug` after each "Stop" command in Claude Code
+- Provides seamless development workflow - make changes, stop Claude, app automatically rebuilds and launches
+- Ensures the latest code is always deployed during development sessions
+
 ## Architecture Overview
 
 ### Core Components
