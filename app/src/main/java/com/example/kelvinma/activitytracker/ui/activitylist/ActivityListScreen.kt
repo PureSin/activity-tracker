@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Card
@@ -112,7 +112,7 @@ fun ActivityListScreen(navController: NavController, activities: List<Activity>,
             )
             IconButton(onClick = { navController.navigate("analytics") }) {
                 Icon(
-                    Icons.Default.MoreVert,
+                    Icons.Default.DateRange,
                     contentDescription = "Analytics",
                     tint = MaterialTheme.colorScheme.onSurface
                 )
