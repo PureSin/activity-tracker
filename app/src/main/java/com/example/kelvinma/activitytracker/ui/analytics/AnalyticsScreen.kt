@@ -50,7 +50,8 @@ fun AnalyticsScreen(navController: NavController) {
     val context = LocalContext.current
     val viewModel: AnalyticsViewModel = viewModel(
         factory = AnalyticsViewModelFactory(
-            AppDatabase.getDatabase(context).activitySessionDao()
+            AppDatabase.getDatabase(context).activitySessionDao(),
+            context
         )
     )
     

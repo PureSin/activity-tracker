@@ -11,6 +11,7 @@ import com.example.kelvinma.activitytracker.data.getCompletionStatus
 import com.example.kelvinma.activitytracker.util.Logger
 import com.example.kelvinma.activitytracker.util.Result
 import com.example.kelvinma.activitytracker.util.safeSuspendCall
+import com.example.kelvinma.activitytracker.R
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -18,7 +19,8 @@ import java.util.*
 import kotlin.math.roundToInt
 
 class AnalyticsViewModel(
-    private val activitySessionDao: ActivitySessionDao
+    private val activitySessionDao: ActivitySessionDao,
+    private val context: android.content.Context
 ) : ViewModel() {
 
     private val _analyticsData = MutableStateFlow(AnalyticsData())
@@ -69,7 +71,7 @@ class AnalyticsViewModel(
                 val hasErrors = sessionsResult.isError || activityStatsResult.isError || totalTimeResult.isError
                 
                 if (hasErrors) {
-                    _errorMessage.value = "Some analytics data may be incomplete due to database errors"
+                    _errorMessage.value = context.getString(R.string.error_analytics_partial_data)
                     Logger.w(Logger.TAG_ANALYTICS, "Analytics loaded with partial data due to errors")
                 } else {
                     Logger.i(Logger.TAG_ANALYTICS, "Analytics data loaded successfully: ${sessions.size} sessions, ${activityStats.size} activities")
@@ -80,7 +82,7 @@ class AnalyticsViewModel(
                 
             } catch (e: Exception) {
                 Logger.e(Logger.TAG_ANALYTICS, "Error calculating analytics", e)
-                _errorMessage.value = "Failed to calculate analytics: ${e.message}"
+                _errorMessage.value = context.getString(R.string.error_analytics_calculation_failed, e.message ?: "Unknown error")
                 _analyticsData.value = AnalyticsData()
             } finally {
                 _isLoading.value = false

@@ -27,9 +27,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.kelvinma.activitytracker.R
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -94,7 +96,7 @@ private fun AppContent() {
             
             if (loadedActivities.isEmpty()) {
                 Logger.w(Logger.TAG_NAVIGATION, "No activities loaded - app may not function properly")
-                errorMessage = "No activities found. Please check your activity files."
+                errorMessage = context.getString(R.string.error_no_activities_found)
             } else {
                 Logger.i(Logger.TAG_NAVIGATION, "Successfully loaded ${loadedActivities.size} activities")
             }
@@ -105,7 +107,7 @@ private fun AppContent() {
             
         } catch (e: Exception) {
             Logger.e(Logger.TAG_NAVIGATION, "Critical error during app initialization", e)
-            errorMessage = "Failed to initialize app: ${e.message}"
+            errorMessage = context.getString(R.string.error_app_init_failed, e.message ?: "Unknown error")
             isLoading = false
         }
     }
@@ -143,7 +145,7 @@ private fun LoadingScreen() {
         ) {
             CircularProgressIndicator()
             Text(
-                text = "Loading Activity Tracker...",
+                text = stringResource(R.string.error_loading_title),
                 style = MaterialTheme.typography.bodyLarge
             )
         }
@@ -163,7 +165,7 @@ private fun ErrorScreen(errorMessage: String, onRetry: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Error",
+                text = stringResource(R.string.error_generic_title),
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.error
             )
@@ -174,7 +176,7 @@ private fun ErrorScreen(errorMessage: String, onRetry: () -> Unit) {
                 color = MaterialTheme.colorScheme.onSurface
             )
             Button(onClick = onRetry) {
-                Text("Retry")
+                Text(stringResource(R.string.error_retry_button))
             }
         }
     }
@@ -199,7 +201,8 @@ private fun MainNavigation(
             
             if (activityName.isNullOrBlank()) {
                 Logger.w(Logger.TAG_NAVIGATION, "Empty activity name provided to activityDetail")
-                ErrorScreen("Invalid activity name") {
+                val context = LocalContext.current
+                ErrorScreen(context.getString(R.string.error_invalid_activity_name)) {
                     navController.popBackStack()
                 }
                 return@composable
@@ -208,7 +211,8 @@ private fun MainNavigation(
             val activity = activities.find { it.name == activityName }
             if (activity == null) {
                 Logger.w(Logger.TAG_NAVIGATION, "Activity not found: $activityName")
-                ErrorScreen("Activity '$activityName' not found") {
+                val context = LocalContext.current
+                ErrorScreen(context.getString(R.string.error_activity_not_found, activityName)) {
                     navController.popBackStack()
                 }
                 return@composable
@@ -224,7 +228,8 @@ private fun MainNavigation(
             
             if (activityName.isNullOrBlank()) {
                 Logger.w(Logger.TAG_NAVIGATION, "Empty activity name provided to timer")
-                ErrorScreen("Invalid activity name") {
+                val context = LocalContext.current
+                ErrorScreen(context.getString(R.string.error_invalid_activity_name)) {
                     navController.popBackStack()
                 }
                 return@composable
@@ -233,7 +238,8 @@ private fun MainNavigation(
             val activity = activities.find { it.name == activityName }
             if (activity == null) {
                 Logger.w(Logger.TAG_NAVIGATION, "Activity not found for timer: $activityName")
-                ErrorScreen("Activity '$activityName' not found") {
+                val context = LocalContext.current
+                ErrorScreen(context.getString(R.string.error_activity_not_found, activityName)) {
                     navController.popBackStack()
                 }
                 return@composable

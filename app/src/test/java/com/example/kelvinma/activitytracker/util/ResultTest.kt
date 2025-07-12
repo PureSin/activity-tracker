@@ -20,19 +20,19 @@ class ResultTest {
     @Test
     fun testError_creation() {
         val exception = RuntimeException("Test error")
-        val result = Result.Error(exception, "Custom message")
+        val result: Result<String> = Result.Error(exception, "Custom message")
         
         assertFalse(result.isSuccess)
         assertTrue(result.isError)
         assertNull(result.getOrNull())
         assertEquals("default", result.getOrDefault("default"))
-        assertEquals("Custom message", result.message)
+        assertEquals("Custom message", (result as Result.Error).message)
     }
 
     @Test(expected = RuntimeException::class)
     fun testError_getOrThrow_throwsException() {
         val exception = RuntimeException("Test error")
-        val result = Result.Error(exception)
+        val result: Result<String> = Result.Error(exception)
         
         result.getOrThrow()
     }
@@ -53,7 +53,7 @@ class ResultTest {
     @Test
     fun testError_onSuccess_doesNotCallAction() {
         var actionCalled = false
-        val result = Result.Error(RuntimeException())
+        val result: Result<String> = Result.Error(RuntimeException())
         
         result.onSuccess { actionCalled = true }
         
@@ -74,7 +74,7 @@ class ResultTest {
     fun testError_onError_callsAction() {
         var actionCalled = false
         val exception = RuntimeException("Test error")
-        val result = Result.Error(exception)
+        val result: Result<String> = Result.Error(exception)
         
         result.onError { 
             actionCalled = true
@@ -96,7 +96,7 @@ class ResultTest {
     @Test
     fun testError_map_preservesError() {
         val exception = RuntimeException("Test error")
-        val result = Result.Error(exception)
+        val result: Result<Int> = Result.Error(exception)
         val mapped = result.map { "transformed" }
         
         assertTrue(mapped.isError)
@@ -167,11 +167,12 @@ class ResultTest {
     @Test
     fun testChaining_errorPreservation() {
         val originalException = RuntimeException("Original error")
-        val result = Result.Error(originalException)
+        val result: Result<String> = Result.Error(originalException)
+        val mapped = result
             .map { "transformed" }
             .map { "transformed again" }
         
-        assertTrue(result.isError)
-        assertNull(result.getOrNull())
+        assertTrue(mapped.isError)
+        assertNull(mapped.getOrNull())
     }
 }

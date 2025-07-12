@@ -2,35 +2,24 @@ package com.example.kelvinma.activitytracker.data
 
 import android.content.Context
 import android.content.res.AssetManager
-import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import com.charleskorn.kaml.Yaml
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.mockito.Mock
-import org.mockito.Mockito.*
-import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.*
 import java.io.ByteArrayInputStream
 import java.io.FileNotFoundException
 import java.io.IOException
 
-@RunWith(AndroidJUnit4::class)
 class ActivityRepositoryTest {
 
-    @Mock
-    private lateinit var mockContext: Context
-    
-    @Mock
-    private lateinit var mockAssetManager: AssetManager
-    
+    private val mockContext = mock<Context>()
+    private val mockAssetManager = mock<AssetManager>()
     private lateinit var repository: ActivityRepository
 
     @Before
     fun setup() {
-        MockitoAnnotations.openMocks(this)
-        `when`(mockContext.assets).thenReturn(mockAssetManager)
+        whenever(mockContext.assets).thenReturn(mockAssetManager)
         repository = ActivityRepository(mockContext)
     }
 
@@ -46,10 +35,10 @@ class ActivityRepositoryTest {
                 duration_unit: seconds
         """.trimIndent()
 
-        `when`(mockAssetManager.list("")).thenReturn(yamlFiles)
+        whenever(mockAssetManager.list("")).thenReturn(yamlFiles)
         
         yamlFiles.forEach { fileName ->
-            `when`(mockAssetManager.open(fileName))
+            whenever(mockAssetManager.open(fileName))
                 .thenReturn(ByteArrayInputStream(validYaml.toByteArray()))
         }
 
@@ -70,7 +59,7 @@ class ActivityRepositoryTest {
     @Test
     fun testGetActivities_emptyAssetDirectory_returnsEmptyList() {
         // Arrange
-        `when`(mockAssetManager.list("")).thenReturn(arrayOf())
+        whenever(mockAssetManager.list("")).thenReturn(arrayOf())
 
         // Act
         val activities = repository.getActivities()
@@ -82,7 +71,7 @@ class ActivityRepositoryTest {
     @Test
     fun testGetActivities_nullAssetList_returnsEmptyList() {
         // Arrange
-        `when`(mockAssetManager.list("")).thenReturn(null)
+        whenever(mockAssetManager.list("")).thenReturn(null)
 
         // Act
         val activities = repository.getActivities()
@@ -111,10 +100,10 @@ class ActivityRepositoryTest {
                 duration_unit: invalid_unit
         """.trimIndent()
 
-        `when`(mockAssetManager.list("")).thenReturn(yamlFiles)
-        `when`(mockAssetManager.open("valid.yaml"))
+        whenever(mockAssetManager.list("")).thenReturn(yamlFiles)
+        whenever(mockAssetManager.open("valid.yaml"))
             .thenReturn(ByteArrayInputStream(validYaml.toByteArray()))
-        `when`(mockAssetManager.open("invalid.yaml"))
+        whenever(mockAssetManager.open("invalid.yaml"))
             .thenReturn(ByteArrayInputStream(invalidYaml.toByteArray()))
 
         // Act
@@ -137,10 +126,10 @@ class ActivityRepositoryTest {
                 duration_unit: seconds
         """.trimIndent()
 
-        `when`(mockAssetManager.list("")).thenReturn(yamlFiles)
-        `when`(mockAssetManager.open("existing.yaml"))
+        whenever(mockAssetManager.list("")).thenReturn(yamlFiles)
+        whenever(mockAssetManager.open("existing.yaml"))
             .thenReturn(ByteArrayInputStream(validYaml.toByteArray()))
-        `when`(mockAssetManager.open("missing.yaml"))
+        whenever(mockAssetManager.open("missing.yaml"))
             .thenThrow(FileNotFoundException("File not found"))
 
         // Act
@@ -163,10 +152,10 @@ class ActivityRepositoryTest {
                 duration_unit: seconds
         """.trimIndent()
 
-        `when`(mockAssetManager.list("")).thenReturn(yamlFiles)
-        `when`(mockAssetManager.open("good.yaml"))
+        whenever(mockAssetManager.list("")).thenReturn(yamlFiles)
+        whenever(mockAssetManager.open("good.yaml"))
             .thenReturn(ByteArrayInputStream(validYaml.toByteArray()))
-        `when`(mockAssetManager.open("corrupted.yaml"))
+        whenever(mockAssetManager.open("corrupted.yaml"))
             .thenThrow(IOException("IO error"))
 
         // Act
@@ -189,10 +178,10 @@ class ActivityRepositoryTest {
                 duration_unit: seconds
         """.trimIndent()
 
-        `when`(mockAssetManager.list("")).thenReturn(yamlFiles)
-        `when`(mockAssetManager.open("valid.yaml"))
+        whenever(mockAssetManager.list("")).thenReturn(yamlFiles)
+        whenever(mockAssetManager.open("valid.yaml"))
             .thenReturn(ByteArrayInputStream(validYaml.toByteArray()))
-        `when`(mockAssetManager.open("empty.yaml"))
+        whenever(mockAssetManager.open("empty.yaml"))
             .thenReturn(ByteArrayInputStream("".toByteArray()))
 
         // Act
@@ -215,8 +204,8 @@ class ActivityRepositoryTest {
                 duration_unit: seconds
         """.trimIndent()
 
-        `when`(mockAssetManager.list("")).thenReturn(yamlFiles)
-        `when`(mockAssetManager.open("test.yaml"))
+        whenever(mockAssetManager.list("")).thenReturn(yamlFiles)
+        whenever(mockAssetManager.open("test.yaml"))
             .thenReturn(ByteArrayInputStream(validYaml.toByteArray()))
 
         // Act
@@ -239,8 +228,8 @@ class ActivityRepositoryTest {
                 duration_unit: seconds
         """.trimIndent()
 
-        `when`(mockAssetManager.list("")).thenReturn(yamlFiles)
-        `when`(mockAssetManager.open("test.yaml"))
+        whenever(mockAssetManager.list("")).thenReturn(yamlFiles)
+        whenever(mockAssetManager.open("test.yaml"))
             .thenReturn(ByteArrayInputStream(validYaml.toByteArray()))
 
         // Act
@@ -262,8 +251,8 @@ class ActivityRepositoryTest {
                 duration_unit: seconds
         """.trimIndent()
 
-        `when`(mockAssetManager.list("")).thenReturn(yamlFiles)
-        `when`(mockAssetManager.open("blank_name.yaml"))
+        whenever(mockAssetManager.list("")).thenReturn(yamlFiles)
+        whenever(mockAssetManager.open("blank_name.yaml"))
             .thenReturn(ByteArrayInputStream(invalidYaml.toByteArray()))
 
         // Act
@@ -282,8 +271,8 @@ class ActivityRepositoryTest {
             intervals: []
         """.trimIndent()
 
-        `when`(mockAssetManager.list("")).thenReturn(yamlFiles)
-        `when`(mockAssetManager.open("no_intervals.yaml"))
+        whenever(mockAssetManager.list("")).thenReturn(yamlFiles)
+        whenever(mockAssetManager.open("no_intervals.yaml"))
             .thenReturn(ByteArrayInputStream(invalidYaml.toByteArray()))
 
         // Act
@@ -305,8 +294,8 @@ class ActivityRepositoryTest {
                 duration_unit: seconds
         """.trimIndent()
 
-        `when`(mockAssetManager.list("")).thenReturn(yamlFiles)
-        `when`(mockAssetManager.open("negative_duration.yaml"))
+        whenever(mockAssetManager.list("")).thenReturn(yamlFiles)
+        whenever(mockAssetManager.open("negative_duration.yaml"))
             .thenReturn(ByteArrayInputStream(invalidYaml.toByteArray()))
 
         // Act
@@ -328,8 +317,8 @@ class ActivityRepositoryTest {
                 duration_unit: invalid_unit
         """.trimIndent()
 
-        `when`(mockAssetManager.list("")).thenReturn(yamlFiles)
-        `when`(mockAssetManager.open("invalid_unit.yaml"))
+        whenever(mockAssetManager.list("")).thenReturn(yamlFiles)
+        whenever(mockAssetManager.open("invalid_unit.yaml"))
             .thenReturn(ByteArrayInputStream(invalidYaml.toByteArray()))
 
         // Act
@@ -353,8 +342,8 @@ class ActivityRepositoryTest {
                 rest_duration_unit: seconds
         """.trimIndent()
 
-        `when`(mockAssetManager.list("")).thenReturn(yamlFiles)
-        `when`(mockAssetManager.open("with_rest.yaml"))
+        whenever(mockAssetManager.list("")).thenReturn(yamlFiles)
+        whenever(mockAssetManager.open("with_rest.yaml"))
             .thenReturn(ByteArrayInputStream(validYaml.toByteArray()))
 
         // Act
@@ -379,8 +368,8 @@ class ActivityRepositoryTest {
                 rest_duration_unit: seconds
         """.trimIndent()
 
-        `when`(mockAssetManager.list("")).thenReturn(yamlFiles)
-        `when`(mockAssetManager.open("negative_rest.yaml"))
+        whenever(mockAssetManager.list("")).thenReturn(yamlFiles)
+        whenever(mockAssetManager.open("negative_rest.yaml"))
             .thenReturn(ByteArrayInputStream(invalidYaml.toByteArray()))
 
         // Act
