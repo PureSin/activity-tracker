@@ -47,6 +47,7 @@ fun TimerScreen(activity: Activity, onFinish: () -> Unit, navController: NavCont
     val isPaused by viewModel.isPaused.collectAsState()
     val currentIntervalIndex by viewModel.currentIntervalIndex.collectAsState()
     val progressPercentage by viewModel.progressPercentage.collectAsState()
+    val isRestPeriod by viewModel.isRestPeriod.collectAsState()
 
     KeepScreenOn()
 
@@ -91,9 +92,21 @@ fun TimerScreen(activity: Activity, onFinish: () -> Unit, navController: NavCont
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = activity.intervals[currentIntervalIndex].name ?: "Unnamed Interval",
+                        text = if (currentIntervalIndex < activity.intervals.size) {
+                            if (isRestPeriod) {
+                                "Rest Period"
+                            } else {
+                                activity.intervals[currentIntervalIndex].name ?: "Unnamed Interval"
+                            }
+                        } else {
+                            "Activity Complete"
+                        },
                         style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        color = if (isRestPeriod) {
+                            MaterialTheme.colorScheme.secondary
+                        } else {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        },
                         textAlign = TextAlign.Center
                     )
                     
@@ -134,7 +147,11 @@ fun TimerScreen(activity: Activity, onFinish: () -> Unit, navController: NavCont
                         Spacer(modifier = Modifier.height(8.dp))
                         
                         Text(
-                            text = "Interval ${currentIntervalIndex + 1} of ${activity.intervals.size}",
+                            text = if (isRestPeriod) {
+                                "Resting after Interval ${currentIntervalIndex + 1}"
+                            } else {
+                                "Interval ${currentIntervalIndex + 1} of ${activity.intervals.size}"
+                            },
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                             textAlign = TextAlign.Center
@@ -184,7 +201,7 @@ fun TimerScreen(activity: Activity, onFinish: () -> Unit, navController: NavCont
                         contentDescription = null,
                         modifier = Modifier.padding(end = 8.dp)
                     )
-                    Text("Skip")
+                    Text(if (isRestPeriod) "Skip Rest" else "Skip")
                 }
             }
             

@@ -37,6 +37,9 @@ class TimerViewModel(
     private val _progressPercentage = MutableStateFlow(0f)
     val progressPercentage: StateFlow<Float> = _progressPercentage
 
+    private val _isRestPeriod = MutableStateFlow(false)
+    val isRestPeriod: StateFlow<Boolean> = _isRestPeriod
+
     private var timer: CountDownTimer? = null
     private var hadPauses = false
     private var startTime = 0L
@@ -62,28 +65,60 @@ class TimerViewModel(
             }
             
             val interval = activity.intervals[intervalIndex]
-            Logger.logTimerEvent("Starting interval", "index: $intervalIndex, name: ${interval.name}")
+            val isRest = _isRestPeriod.value
             
-            playSound(R.raw.interval_start)
-            
-            // Convert duration to milliseconds based on unit
-            val durationMillis = convertToMilliseconds(interval.duration, interval.duration_unit)
-            
-            timer?.cancel() // Cancel any existing timer
-            timer = object : CountDownTimer(durationMillis, 1000) {
-                override fun onTick(millisUntilFinished: Long) {
-                    _timerValue.value = millisUntilFinished
-                    if (millisUntilFinished / 1000 <= 3) {
-                        playSound(R.raw.progress_beep)
-                    }
-                }
+            if (isRest) {
+                // Starting rest period
+                Logger.logTimerEvent("Starting rest period", "index: $intervalIndex, duration: ${interval.rest_duration} ${interval.rest_duration_unit}")
+                
+                // Convert rest duration to milliseconds
+                val restDurationMillis = convertToMilliseconds(interval.rest_duration ?: 0, interval.rest_duration_unit ?: "seconds")
+                
+                if (restDurationMillis > 0) {
+                    timer?.cancel()
+                    timer = object : CountDownTimer(restDurationMillis, 1000) {
+                        override fun onTick(millisUntilFinished: Long) {
+                            _timerValue.value = millisUntilFinished
+                            if (millisUntilFinished / 1000 <= 3) {
+                                playSound(R.raw.progress_beep)
+                            }
+                        }
 
-                override fun onFinish() {
-                    Logger.logTimerEvent("Interval completed", "index: $intervalIndex")
-                    playSound(R.raw.interval_end)
-                    nextInterval()
+                        override fun onFinish() {
+                            Logger.logTimerEvent("Rest period completed", "index: $intervalIndex")
+                            playSound(R.raw.interval_end)
+                            finishRestPeriod()
+                        }
+                    }.start()
+                } else {
+                    // No rest duration, move directly to next interval
+                    finishRestPeriod()
                 }
-            }.start()
+            } else {
+                // Starting activity interval
+                Logger.logTimerEvent("Starting interval", "index: $intervalIndex, name: ${interval.name}")
+                
+                playSound(R.raw.interval_start)
+                
+                // Convert duration to milliseconds based on unit
+                val durationMillis = convertToMilliseconds(interval.duration, interval.duration_unit)
+                
+                timer?.cancel() // Cancel any existing timer
+                timer = object : CountDownTimer(durationMillis, 1000) {
+                    override fun onTick(millisUntilFinished: Long) {
+                        _timerValue.value = millisUntilFinished
+                        if (millisUntilFinished / 1000 <= 3) {
+                            playSound(R.raw.progress_beep)
+                        }
+                    }
+
+                    override fun onFinish() {
+                        Logger.logTimerEvent("Interval completed", "index: $intervalIndex")
+                        playSound(R.raw.interval_end)
+                        finishInterval()
+                    }
+                }.start()
+            }
             
         } catch (e: Exception) {
             Logger.e(Logger.TAG_TIMER, "Error starting timer", e)
@@ -137,7 +172,8 @@ class TimerViewModel(
         try {
             _isPaused.value = false
             val remainingTime = _timerValue.value
-            Logger.logTimerEvent("Timer resumed", "remaining: ${remainingTime}ms")
+            val isRest = _isRestPeriod.value
+            Logger.logTimerEvent("Timer resumed", "remaining: ${remainingTime}ms, isRest: $isRest")
             
             timer = object : CountDownTimer(remainingTime, 1000) {
                 override fun onTick(millisUntilFinished: Long) {
@@ -148,9 +184,13 @@ class TimerViewModel(
                 }
 
                 override fun onFinish() {
-                    Logger.logTimerEvent("Interval completed after resume", "index: ${_currentIntervalIndex.value}")
+                    Logger.logTimerEvent("Timer completed after resume", "index: ${_currentIntervalIndex.value}, isRest: $isRest")
                     playSound(R.raw.interval_end)
-                    nextInterval()
+                    if (isRest) {
+                        finishRestPeriod()
+                    } else {
+                        finishInterval()
+                    }
                 }
             }.start()
         } catch (e: Exception) {
@@ -162,6 +202,35 @@ class TimerViewModel(
 
     fun skipInterval() {
         timer?.cancel()
+        if (_isRestPeriod.value) {
+            finishRestPeriod()
+        } else {
+            finishInterval()
+        }
+    }
+
+    private fun finishInterval() {
+        val currentIndex = _currentIntervalIndex.value
+        if (currentIndex >= activity.intervals.size) {
+            // Already completed all intervals
+            return
+        }
+        
+        val currentInterval = activity.intervals[currentIndex]
+        val hasRestDuration = (currentInterval.rest_duration ?: 0) > 0
+        
+        if (hasRestDuration && currentIndex < activity.intervals.size - 1) {
+            // Start rest period (but don't advance interval index yet)
+            _isRestPeriod.value = true
+            startTimer()
+        } else {
+            // No rest or this is the last interval, move to next interval
+            nextInterval()
+        }
+    }
+    
+    private fun finishRestPeriod() {
+        _isRestPeriod.value = false
         nextInterval()
     }
 
