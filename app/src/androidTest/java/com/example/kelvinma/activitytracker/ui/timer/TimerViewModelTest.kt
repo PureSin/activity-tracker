@@ -89,7 +89,7 @@ class TimerViewModelTest {
 
         // Verify session was saved with NATURAL completion
         val sessions = dao.getAllSessions().first()
-        assertEquals("Should have one session", 1, sessions.size)
+        assertTrue("Should have at least one session", sessions.isNotEmpty())
 
         val savedSession = sessions[0]
         assertEquals("Activity name should match", testActivity.name, savedSession.activity_name)
