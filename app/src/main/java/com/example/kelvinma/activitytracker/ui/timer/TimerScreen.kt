@@ -92,21 +92,9 @@ fun TimerScreen(activity: Activity, onFinish: () -> Unit, navController: NavCont
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = if (currentIntervalIndex < activity.intervals.size) {
-                            if (isRestPeriod) {
-                                "Rest Period"
-                            } else {
-                                activity.intervals[currentIntervalIndex].name ?: "Unnamed Interval"
-                            }
-                        } else {
-                            "Activity Complete"
-                        },
+                        text = getTimerDisplayText(currentIntervalIndex, isRestPeriod, activity),
                         style = MaterialTheme.typography.headlineMedium,
-                        color = if (isRestPeriod) {
-                            MaterialTheme.colorScheme.secondary
-                        } else {
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        },
+                        color = getTimerDisplayColor(isRestPeriod),
                         textAlign = TextAlign.Center
                     )
                     
@@ -147,11 +135,7 @@ fun TimerScreen(activity: Activity, onFinish: () -> Unit, navController: NavCont
                         Spacer(modifier = Modifier.height(8.dp))
                         
                         Text(
-                            text = if (isRestPeriod) {
-                                "Resting after Interval ${currentIntervalIndex + 1}"
-                            } else {
-                                "Interval ${currentIntervalIndex + 1} of ${activity.intervals.size}"
-                            },
+                            text = getProgressText(currentIntervalIndex, isRestPeriod, activity),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                             textAlign = TextAlign.Center
@@ -222,6 +206,43 @@ fun TimerScreen(activity: Activity, onFinish: () -> Unit, navController: NavCont
                 Text("Finish Activity")
             }
         }
+    }
+}
+
+@Composable
+private fun getTimerDisplayText(
+    currentIntervalIndex: Int,
+    isRestPeriod: Boolean,
+    activity: Activity
+): String {
+    return when {
+        currentIntervalIndex >= activity.intervals.size -> "Activity Complete"
+        isRestPeriod -> "Rest Period"
+        else -> activity.intervals[currentIntervalIndex].name ?: "Unnamed Interval"
+    }
+}
+
+@Composable
+private fun getProgressText(
+    currentIntervalIndex: Int,
+    isRestPeriod: Boolean,
+    activity: Activity
+): String {
+    return if (isRestPeriod) {
+        "Resting after Interval ${currentIntervalIndex + 1}"
+    } else {
+        "Interval ${currentIntervalIndex + 1} of ${activity.intervals.size}"
+    }
+}
+
+@Composable
+private fun getTimerDisplayColor(
+    isRestPeriod: Boolean
+): androidx.compose.ui.graphics.Color {
+    return if (isRestPeriod) {
+        MaterialTheme.colorScheme.secondary
+    } else {
+        MaterialTheme.colorScheme.onPrimaryContainer
     }
 }
 

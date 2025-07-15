@@ -10,6 +10,7 @@ import com.example.kelvinma.activitytracker.data.Activity
 import com.example.kelvinma.activitytracker.data.ActivitySession
 import com.example.kelvinma.activitytracker.data.ActivitySessionDao
 import com.example.kelvinma.activitytracker.data.CompletionType
+import com.example.kelvinma.activitytracker.data.Interval
 import com.example.kelvinma.activitytracker.util.Logger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -68,56 +69,9 @@ class TimerViewModel(
             val isRest = _isRestPeriod.value
             
             if (isRest) {
-                // Starting rest period
-                Logger.logTimerEvent("Starting rest period", "index: $intervalIndex, duration: ${interval.rest_duration} ${interval.rest_duration_unit}")
-                
-                // Convert rest duration to milliseconds
-                val restDurationMillis = convertToMilliseconds(interval.rest_duration ?: 0, interval.rest_duration_unit ?: "seconds")
-                
-                if (restDurationMillis > 0) {
-                    timer?.cancel()
-                    timer = object : CountDownTimer(restDurationMillis, 1000) {
-                        override fun onTick(millisUntilFinished: Long) {
-                            _timerValue.value = millisUntilFinished
-                            if (millisUntilFinished / 1000 <= 3) {
-                                playSound(R.raw.progress_beep)
-                            }
-                        }
-
-                        override fun onFinish() {
-                            Logger.logTimerEvent("Rest period completed", "index: $intervalIndex")
-                            playSound(R.raw.interval_end)
-                            finishRestPeriod()
-                        }
-                    }.start()
-                } else {
-                    // No rest duration, move directly to next interval
-                    finishRestPeriod()
-                }
+                startRestPeriod(interval, intervalIndex)
             } else {
-                // Starting activity interval
-                Logger.logTimerEvent("Starting interval", "index: $intervalIndex, name: ${interval.name}")
-                
-                playSound(R.raw.interval_start)
-                
-                // Convert duration to milliseconds based on unit
-                val durationMillis = convertToMilliseconds(interval.duration, interval.duration_unit)
-                
-                timer?.cancel() // Cancel any existing timer
-                timer = object : CountDownTimer(durationMillis, 1000) {
-                    override fun onTick(millisUntilFinished: Long) {
-                        _timerValue.value = millisUntilFinished
-                        if (millisUntilFinished / 1000 <= 3) {
-                            playSound(R.raw.progress_beep)
-                        }
-                    }
-
-                    override fun onFinish() {
-                        Logger.logTimerEvent("Interval completed", "index: $intervalIndex")
-                        playSound(R.raw.interval_end)
-                        finishInterval()
-                    }
-                }.start()
+                startActivityInterval(interval, intervalIndex)
             }
             
         } catch (e: Exception) {
@@ -130,6 +84,59 @@ class TimerViewModel(
         }
     }
     
+    private fun startActivityInterval(interval: Interval, intervalIndex: Int) {
+        Logger.logTimerEvent("Starting interval", "index: $intervalIndex, name: ${interval.name}")
+        
+        playSound(R.raw.interval_start)
+        
+        // Convert duration to milliseconds based on unit
+        val durationMillis = convertToMilliseconds(interval.duration, interval.duration_unit)
+        
+        timer?.cancel() // Cancel any existing timer
+        timer = object : CountDownTimer(durationMillis, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                _timerValue.value = millisUntilFinished
+                if (millisUntilFinished / 1000 <= 3) {
+                    playSound(R.raw.progress_beep)
+                }
+            }
+
+            override fun onFinish() {
+                Logger.logTimerEvent("Interval completed", "index: $intervalIndex")
+                playSound(R.raw.interval_end)
+                finishInterval()
+            }
+        }.start()
+    }
+
+    private fun startRestPeriod(interval: Interval, intervalIndex: Int) {
+        Logger.logTimerEvent("Starting rest period", "index: $intervalIndex, duration: ${interval.rest_duration} ${interval.rest_duration_unit}")
+        
+        // Convert rest duration to milliseconds
+        val restDurationMillis = convertToMilliseconds(interval.rest_duration ?: 0, interval.rest_duration_unit ?: "seconds")
+        
+        if (restDurationMillis > 0) {
+            timer?.cancel()
+            timer = object : CountDownTimer(restDurationMillis, 1000) {
+                override fun onTick(millisUntilFinished: Long) {
+                    _timerValue.value = millisUntilFinished
+                    if (millisUntilFinished / 1000 <= 3) {
+                        playSound(R.raw.progress_beep)
+                    }
+                }
+
+                override fun onFinish() {
+                    Logger.logTimerEvent("Rest period completed", "index: $intervalIndex")
+                    playSound(R.raw.interval_end)
+                    finishRestPeriod()
+                }
+            }.start()
+        } else {
+            // No rest duration, move directly to next interval
+            finishRestPeriod()
+        }
+    }
+
     /**
      * Converts duration to milliseconds based on the unit.
      */

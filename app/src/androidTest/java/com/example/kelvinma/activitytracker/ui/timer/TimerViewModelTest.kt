@@ -138,4 +138,137 @@ class TimerViewModelTest {
         assertEquals("Should be early completion", CompletionType.EARLY, savedSession.completion_type)
         assertTrue("Should have completed less than all intervals", savedSession.intervals_completed <= testActivity.intervals.size)
     }
+
+    @Test
+    fun testRestPeriodFlow() = runBlocking {
+        // Clear database for this test
+        database.clearAllTables()
+        
+        // Create activity with rest periods - use very short durations to minimize timing issues
+        val activityWithRest = Activity(
+            name = "Activity With Rest",
+            intervals = listOf(
+                Interval(
+                    name = "Interval 1",
+                    duration = 1,
+                    duration_unit = "seconds",
+                    rest_duration = 1,
+                    rest_duration_unit = "seconds"
+                ),
+                Interval(
+                    name = "Interval 2", 
+                    duration = 1,
+                    duration_unit = "seconds"
+                )
+            )
+        )
+        
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        viewModel = TimerViewModel(activityWithRest, dao, context)
+        
+        kotlinx.coroutines.delay(200) // Longer delay for stability
+        
+        // Skip through the entire activity and verify completion
+        // The exact flow depends on timing, but we can test final state
+        repeat(5) { // Skip enough times to complete activity
+            if (!viewModel.isActivityComplete.value) {
+                viewModel.skipInterval()
+                kotlinx.coroutines.delay(100)
+            }
+        }
+        
+        assertTrue("Activity should eventually be complete", viewModel.isActivityComplete.value)
+        
+        // Verify session was saved
+        val sessions = dao.getAllSessions().first()
+        assertTrue("Should have at least one session", sessions.isNotEmpty())
+        assertEquals("Should be activity with rest", activityWithRest.name, sessions[0].activity_name)
+    }
+
+    @Test
+    fun testRestPeriodSkippedWhenZeroDuration() = runBlocking {
+        // Clear database for this test
+        database.clearAllTables()
+        
+        // Create activity with zero rest duration
+        val activityNoRest = Activity(
+            name = "Activity No Rest",
+            intervals = listOf(
+                Interval(
+                    name = "Interval 1",
+                    duration = 1,
+                    duration_unit = "seconds",
+                    rest_duration = 0,
+                    rest_duration_unit = "seconds"
+                ),
+                Interval(
+                    name = "Interval 2",
+                    duration = 1,
+                    duration_unit = "seconds"
+                )
+            )
+        )
+        
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        viewModel = TimerViewModel(activityNoRest, dao, context)
+        
+        kotlinx.coroutines.delay(200)
+        
+        // Skip through activity - should complete without rest periods
+        repeat(3) { // Skip enough times to complete activity
+            if (!viewModel.isActivityComplete.value) {
+                viewModel.skipInterval()
+                kotlinx.coroutines.delay(100)
+            }
+        }
+        
+        assertTrue("Activity should be complete", viewModel.isActivityComplete.value)
+        assertEquals("Should not be in rest period at end", false, viewModel.isRestPeriod.value)
+        
+        // Verify session was saved
+        val sessions = dao.getAllSessions().first()
+        assertTrue("Should have at least one session", sessions.isNotEmpty())
+        assertEquals("Should be activity without rest", activityNoRest.name, sessions[0].activity_name)
+    }
+
+    @Test
+    fun testRestPeriodNotAfterLastInterval() = runBlocking {
+        // Clear database for this test
+        database.clearAllTables()
+        
+        // Create activity where last interval has rest duration
+        val activityLastRest = Activity(
+            name = "Activity Last Rest",
+            intervals = listOf(
+                Interval(
+                    name = "Final Interval",
+                    duration = 1,
+                    duration_unit = "seconds",
+                    rest_duration = 5,
+                    rest_duration_unit = "seconds"
+                )
+            )
+        )
+        
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        viewModel = TimerViewModel(activityLastRest, dao, context)
+        
+        kotlinx.coroutines.delay(200)
+        
+        // Skip final interval - should complete activity without rest period
+        repeat(2) { // Skip enough times to ensure completion
+            if (!viewModel.isActivityComplete.value) {
+                viewModel.skipInterval()
+                kotlinx.coroutines.delay(100)
+            }
+        }
+        
+        assertTrue("Activity should be complete", viewModel.isActivityComplete.value)
+        assertEquals("Should not be in rest period after last interval", false, viewModel.isRestPeriod.value)
+        
+        // Verify session was saved
+        val sessions = dao.getAllSessions().first()
+        assertTrue("Should have at least one session", sessions.isNotEmpty())
+        assertEquals("Should be final interval activity", activityLastRest.name, sessions[0].activity_name)
+    }
 }
