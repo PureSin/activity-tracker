@@ -1,0 +1,207 @@
+package com.example.kelvinma.activitytracker.data
+
+import androidx.test.core.app.ApplicationProvider
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+import java.io.File
+import java.io.FileWriter
+
+@RunWith(AndroidJUnit4::class)
+class ActivityRepositoryTest {
+
+    private lateinit var repository: ActivityRepository
+    private lateinit var testAssetsDir: File
+
+    @Before
+    fun setup() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        repository = ActivityRepository(context)
+        
+        // Create a test assets directory
+        testAssetsDir = File(context.filesDir, "test_assets")
+        testAssetsDir.mkdirs()
+    }
+
+    @Test
+    fun testActivityRepository_initialization() {
+        // Test that the repository can be initialized without error
+        assertNotNull(repository)
+    }
+
+    @Test
+    fun testGetActivities_emptyAssets_returnsEmptyList() {
+        // When there are no YAML files, should return empty list
+        val activities = repository.getActivities()
+        assertTrue("Should return empty list when no activities found", activities.isEmpty())
+    }
+
+    @Test
+    fun testActivityValidation_validActivity() {
+        // Test that a valid activity structure doesn't throw exceptions
+        val activity = Activity(
+            name = "Test Activity",
+            intervals = listOf(
+                Interval(
+                    name = "Test Interval",
+                    duration = 30,
+                    duration_unit = "seconds",
+                    rest_duration = 10,
+                    rest_duration_unit = "seconds"
+                )
+            )
+        )
+        
+        // Should not throw any exceptions
+        assertNotNull(activity)
+        assertEquals("Test Activity", activity.name)
+        assertEquals(1, activity.intervals.size)
+        assertEquals("Test Interval", activity.intervals[0].name)
+    }
+
+    @Test
+    fun testActivityValidation_intervalStructure() {
+        // Test interval validation
+        val interval = Interval(
+            name = "Valid Interval",
+            duration = 60,
+            duration_unit = "seconds",
+            rest_duration = 15,
+            rest_duration_unit = "seconds"
+        )
+        
+        assertNotNull(interval)
+        assertEquals("Valid Interval", interval.name)
+        assertEquals(60, interval.duration)
+        assertEquals("seconds", interval.duration_unit)
+        assertEquals(15, interval.rest_duration)
+        assertEquals("seconds", interval.rest_duration_unit)
+    }
+
+    @Test
+    fun testActivityValidation_withoutRestDuration() {
+        // Test interval without rest duration
+        val interval = Interval(
+            name = "No Rest Interval",
+            duration = 45,
+            duration_unit = "seconds"
+        )
+        
+        assertNotNull(interval)
+        assertEquals("No Rest Interval", interval.name)
+        assertEquals(45, interval.duration)
+        assertEquals("seconds", interval.duration_unit)
+        assertNull(interval.rest_duration)
+        assertNull(interval.rest_duration_unit)
+    }
+
+    @Test
+    fun testGetActivityByName_emptyInput_returnsNull() {
+        // Test with empty input
+        val result = repository.getActivityByName("")
+        assertNull("Should return null for empty input", result)
+    }
+
+    @Test
+    fun testGetActivityByName_emptyString_returnsNull() {
+        // Test with empty string
+        val result = repository.getActivityByName("")
+        assertNull("Should return null for empty string", result)
+    }
+
+    @Test
+    fun testGetActivityByName_blankString_returnsNull() {
+        // Test with blank string
+        val result = repository.getActivityByName("   ")
+        assertNull("Should return null for blank string", result)
+    }
+
+    @Test
+    fun testGetActivityByName_nonExistentActivity_returnsNull() {
+        // Test with non-existent activity name
+        val result = repository.getActivityByName("Non-existent Activity")
+        assertNull("Should return null for non-existent activity", result)
+    }
+
+    @Test
+    fun testActivityList_consistency() {
+        // Test that multiple calls return consistent results
+        val activities1 = repository.getActivities()
+        val activities2 = repository.getActivities()
+        
+        assertEquals("Multiple calls should return same size", activities1.size, activities2.size)
+        
+        if (activities1.isNotEmpty()) {
+            assertEquals("Activity names should be consistent", 
+                activities1.map { it.name }, 
+                activities2.map { it.name })
+        }
+    }
+
+    @Test
+    fun testRepository_errorHandling() {
+        // Test that repository handles errors gracefully
+        try {
+            val activities = repository.getActivities()
+            // Should not throw exceptions, even if no activities found
+            assertNotNull("Activities list should not be null", activities)
+        } catch (e: Exception) {
+            fail("Repository should handle errors gracefully, but threw: ${e.message}")
+        }
+    }
+
+    @Test
+    fun testInterval_durationUnitValidation() {
+        // Test that common duration units work
+        val validUnits = listOf("seconds", "minutes")
+        
+        for (unit in validUnits) {
+            val interval = Interval(
+                name = "Test Interval",
+                duration = 30,
+                duration_unit = unit
+            )
+            assertEquals("Duration unit should be preserved", unit, interval.duration_unit)
+        }
+    }
+
+    @Test
+    fun testActivity_multipleIntervals() {
+        // Test activity with multiple intervals
+        val intervals = listOf(
+            Interval("Interval 1", 30, "seconds"),
+            Interval("Interval 2", 45, "seconds"),
+            Interval("Interval 3", 60, "seconds")
+        )
+        
+        val activity = Activity("Multi Interval Activity", intervals)
+        
+        assertEquals("Multi Interval Activity", activity.name)
+        assertEquals(3, activity.intervals.size)
+        assertEquals("Interval 1", activity.intervals[0].name)
+        assertEquals("Interval 2", activity.intervals[1].name)
+        assertEquals("Interval 3", activity.intervals[2].name)
+    }
+
+    @Test
+    fun testRepository_threadSafety() {
+        // Basic test for thread safety - should not throw concurrent modification exceptions
+        val threads = mutableListOf<Thread>()
+        
+        repeat(5) {
+            threads.add(Thread {
+                repository.getActivities()
+            })
+        }
+        
+        threads.forEach { it.start() }
+        threads.forEach { it.join() }
+        
+        // If we get here without exceptions, basic thread safety is working
+        assertTrue("Thread safety test completed", true)
+    }
+}

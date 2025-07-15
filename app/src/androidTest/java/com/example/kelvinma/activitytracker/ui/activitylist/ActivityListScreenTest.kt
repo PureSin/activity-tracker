@@ -7,8 +7,12 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.navigation.compose.rememberNavController
+import androidx.room.Room
 import androidx.test.platform.app.InstrumentationRegistry
 import com.example.kelvinma.activitytracker.data.Activity
+import com.example.kelvinma.activitytracker.data.AppDatabase
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
@@ -19,6 +23,21 @@ class ActivityListScreenTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
+    private lateinit var database: AppDatabase
+
+    @Before
+    fun setup() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        database = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
+            .allowMainThreadQueries()
+            .build()
+    }
+
+    @After
+    fun teardown() {
+        database.close()
+    }
+
     @Test
     fun activityListScreen_displaysActivities() {
         val activities = listOf(
@@ -28,7 +47,11 @@ class ActivityListScreenTest {
         composeTestRule.setContent {
             val navController = rememberNavController()
             com.example.kelvinma.activitytracker.ui.theme.ActivityTrackerTheme {
-                ActivityListScreen(navController = navController, activities = activities)
+                ActivityListScreen(
+                    navController = navController, 
+                    activities = activities, 
+                    activitySessionDao = database.activitySessionDao()
+                )
             }
         }
 
@@ -47,7 +70,11 @@ class ActivityListScreenTest {
         composeTestRule.setContent {
             val navController = rememberNavController()
             com.example.kelvinma.activitytracker.ui.theme.ActivityTrackerTheme {
-                ActivityListScreen(navController = navController, activities = activities)
+                ActivityListScreen(
+                    navController = navController, 
+                    activities = activities,
+                    activitySessionDao = database.activitySessionDao()
+                )
             }
         }
         

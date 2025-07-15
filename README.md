@@ -142,6 +142,7 @@ The app will log each activity session with detailed completion status, includin
 
 ### ✅ Implemented
 - **Session Tracking**: Room database with comprehensive activity completion logging
+- **Analytics Dashboard**: Advanced metrics and insights with visual charts
 - **Material 3 UI**: Modern design with custom app icon and visual feedback
 - **Timer System**: CountDownTimer with audio cues and pause/resume functionality
 - **Activity Management**: YAML-based configuration with multiple workout types
@@ -159,9 +160,62 @@ The app will log each activity session with detailed completion status, includin
 - **Custom Icon**: Professional stopwatch-themed app icon
 - **Comprehensive Testing**: Unit tests and UI tests with database validation
 
+## 📊 Analytics Dashboard
+
+The Activity Tracker includes a comprehensive analytics screen that provides detailed insights into your activity performance and progress patterns.
+
+### Overview Metrics
+- **Total Sessions**: Complete count of all activity sessions performed
+- **Completion Rate**: Overall percentage of activities completed successfully
+- **Current Streak**: Number of consecutive days with completed activities
+- **Time Invested**: Total time spent across all activities with smart formatting
+
+### Completion Analysis
+**Visual Breakdown Chart** showing distribution of session outcomes:
+- 🟢 **Completed Full**: Activities finished without pauses (optimal performance)
+- 🟡 **Completed Full with Pause**: Activities finished but with pauses during execution
+- 🟠 **Completed Early**: Activities ended before all intervals were finished
+- 🔵 **Partial Completion**: Some intervals completed but session ended early
+- 🔴 **Incomplete**: Sessions started but no intervals completed
+
+### Activity Performance Tracking
+Per-activity detailed statistics including:
+- **Completion Rate**: Success percentage for each specific activity
+- **Session Count**: Total attempts vs. successful completions
+- **Average Progress**: Mean completion percentage across all attempts
+- **Time Spent**: Total duration invested in each activity type
+
+### Streak Analysis
+- **Current Streak**: Live tracking of consecutive completion days
+- **Longest Streak**: Personal best streak record
+- **Weekly Patterns**: Completion trends over recent weeks
+- **Consistency Insights**: Performance stability analysis
+
+### Smart Insights & Recommendations
+AI-powered suggestions based on your activity patterns:
+- 🎯 **Performance Insights**: Recognition of excellent completion rates (80%+)
+- 📈 **Improvement Suggestions**: Recommendations for low completion rates (<50%)
+- 🏃 **Pattern Recognition**: Early completion trends and duration adjustments
+- 💪 **Motivation Boosts**: Encouragement for streak rebuilding and fresh starts
+
+### Data Visualization
+- **Responsive Charts**: Visual representation of completion breakdowns
+- **Progress Indicators**: Circular progress displays for key metrics
+- **Color-Coded Status**: Intuitive color scheme for quick status recognition
+- **Real-Time Updates**: Live data refresh with pull-to-refresh functionality
+
+### Navigation & Usability
+- **Accessible from Activity List**: Quick access via navigation
+- **Back Navigation**: Seamless return to main app flow
+- **Refresh Control**: Manual data refresh capability
+- **Error Handling**: Graceful degradation with partial data loading
+
+The analytics system automatically tracks all activity sessions and provides actionable insights to help improve consistency, identify patterns, and maintain motivation for long-term fitness and productivity goals.
+
 ### 🏗️ Architecture
 - **MVVM Pattern**: ViewModel with database integration
 - **Room Database**: Activity session persistence with reactive queries
 - **Jetpack Compose**: Modern UI with Material 3 design system
 - **Repository Pattern**: Clean data access layer
 - **YAML Configuration**: Flexible activity definition system
+- **Analytics Engine**: Advanced data processing with completion status classification

@@ -17,7 +17,9 @@ data class ActivityStats(
     val earlyCompletions: Int = 0,
     val partialCompletions: Int = 0,
     val averageProgress: Float = 0f
-)
+) {
+    fun totalCompletions(): Int = fullCompletions + fullCompletionsWithPause + earlyCompletions
+}
 
 class ActivityDetailViewModel(
     private val activitySessionDao: ActivitySessionDao,
