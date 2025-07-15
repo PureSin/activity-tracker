@@ -117,7 +117,7 @@ fun ActivityDetailScreen(navController: NavController, activity: Activity?) {
                                     color = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                                 Text(
-                                    text = "${stats.fullCompletions + stats.fullCompletionsWithPause + stats.earlyCompletions}",
+                                    text = "${stats.totalCompletions()}",
                                     style = MaterialTheme.typography.headlineSmall,
                                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                                     fontWeight = FontWeight.Bold

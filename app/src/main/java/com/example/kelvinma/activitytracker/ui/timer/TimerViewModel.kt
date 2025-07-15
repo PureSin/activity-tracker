@@ -87,7 +87,7 @@ class TimerViewModel(
     private fun startActivityInterval(interval: Interval, intervalIndex: Int) {
         Logger.logTimerEvent("Starting interval", "index: $intervalIndex, name: ${interval.name}")
         
-        playSound(R.raw.interval_start)
+        // playSound(R.raw.interval_start)
         
         // Convert duration to milliseconds based on unit
         val durationMillis = convertToMilliseconds(interval.duration, interval.duration_unit)
@@ -103,7 +103,7 @@ class TimerViewModel(
 
             override fun onFinish() {
                 Logger.logTimerEvent("Interval completed", "index: $intervalIndex")
-                playSound(R.raw.interval_end)
+                // playSound(R.raw.interval_end)
                 finishInterval()
             }
         }.start()
@@ -121,13 +121,13 @@ class TimerViewModel(
                 override fun onTick(millisUntilFinished: Long) {
                     _timerValue.value = millisUntilFinished
                     if (millisUntilFinished / 1000 <= 3) {
-                        playSound(R.raw.progress_beep)
+                        // playSound(R.raw.progress_beep)
                     }
                 }
 
                 override fun onFinish() {
                     Logger.logTimerEvent("Rest period completed", "index: $intervalIndex")
-                    playSound(R.raw.interval_end)
+                    // playSound(R.raw.interval_end)
                     finishRestPeriod()
                 }
             }.start()
@@ -186,13 +186,13 @@ class TimerViewModel(
                 override fun onTick(millisUntilFinished: Long) {
                     _timerValue.value = millisUntilFinished
                     if (millisUntilFinished / 1000 <= 3) {
-                        playSound(R.raw.progress_beep)
+                        // playSound(R.raw.progress_beep)
                     }
                 }
 
                 override fun onFinish() {
                     Logger.logTimerEvent("Timer completed after resume", "index: ${_currentIntervalIndex.value}, isRest: $isRest")
-                    playSound(R.raw.interval_end)
+                    // playSound(R.raw.interval_end)
                     if (isRest) {
                         finishRestPeriod()
                     } else {
@@ -250,7 +250,7 @@ class TimerViewModel(
         } else {
             // Activity finished
             _isActivityComplete.value = true
-            playSound(R.raw.activity_complete)
+            // playSound(R.raw.activity_complete)
             finishActivity()
         }
     }
