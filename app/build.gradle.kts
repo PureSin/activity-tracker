@@ -49,6 +49,34 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    
+    lint {
+        abortOnError = false
+        ignoreWarnings = false
+        warningsAsErrors = false
+        checkReleaseBuilds = true
+        checkDependencies = true
+        
+        htmlReport = true
+        xmlReport = true
+        sarifReport = true
+        
+        htmlOutput = file("build/reports/lint-results-debug.html")
+        xmlOutput = file("build/reports/lint-results-debug.xml")
+        sarifOutput = file("build/reports/lint-results-debug.sarif")
+        
+        disable += setOf(
+            "ObsoleteLintCustomCheck",
+            "LintError"
+        )
+        
+        enable += setOf(
+            "UnusedResources",
+            "UnusedIds",
+            "IconMissingDensityFolder",
+            "IconDuplicates"
+        )
+    }
 }
 
 dependencies {
