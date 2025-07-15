@@ -282,6 +282,10 @@ class TimerViewModel(
         updateSessionProgress()
         // Mark as natural completion when all intervals are finished
         currentSession = currentSession?.copy(completion_type = CompletionType.NATURAL)
+        
+        // Announce activity completion
+        speakActivityComplete()
+        
         saveCurrentSession()
     }
 
@@ -379,23 +383,32 @@ class TimerViewModel(
         }
     }
 
+    private fun speakActivityComplete() {
+        if (isTtsInitialized && textToSpeech != null) {
+            try {
+                textToSpeech?.speak("Activity Complete", TextToSpeech.QUEUE_FLUSH, null, "activity_complete")
+                Logger.i(Logger.TAG_AUDIO, "Speaking: Activity Complete")
+            } catch (e: Exception) {
+                Logger.e(Logger.TAG_AUDIO, "Error speaking activity completion", e)
+            }
+        } else {
+            Logger.w(Logger.TAG_AUDIO, "TextToSpeech not available for activity completion announcement")
+        }
+    }
+
     private fun performHapticFeedback() {
         try {
             vibrator?.let { vib ->
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    // Use VibrationEffect for API 26+
-                    val effect = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        VibrationEffect.createPredefined(VibrationEffect.EFFECT_HEAVY_CLICK)
-                    } else {
-                        VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE)
-                    }
+                    // Use custom 100ms vibration for consistent duration across all API levels
+                    val effect = VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE)
                     vib.vibrate(effect)
                 } else {
                     // Fallback for older devices
                     @Suppress("DEPRECATION")
                     vib.vibrate(100)
                 }
-                Logger.i(Logger.TAG_AUDIO, "Haptic feedback performed")
+                Logger.i(Logger.TAG_AUDIO, "Haptic feedback performed (100ms)")
             }
         } catch (e: Exception) {
             Logger.e(Logger.TAG_AUDIO, "Error performing haptic feedback", e)
