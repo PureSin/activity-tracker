@@ -19,7 +19,7 @@ class CompletionStatusTest {
         )
 
         val status = session.getCompletionStatus()
-        assertEquals(CompletionStatus.NO_ACTIVITY_STARTED, status)
+        assertEquals(CompletionStatus.PARTIAL_COMPLETION, status)
     }
 
     @Test
@@ -144,6 +144,7 @@ class CompletionStatusTest {
 
     @Test
     fun testEarlyCompletionRequiresProgress() {
+        // Updated: If completion_type is EARLY, it should return COMPLETED_EARLY regardless of progress
         val session = ActivitySession(
             activity_name = "Test",
             start_timestamp = 1000L,
@@ -156,7 +157,7 @@ class CompletionStatusTest {
         )
 
         val status = session.getCompletionStatus()
-        assertEquals(CompletionStatus.NO_ACTIVITY_STARTED, status)
+        assertEquals(CompletionStatus.COMPLETED_EARLY, status)
     }
 
     @Test
@@ -190,6 +191,60 @@ class CompletionStatusTest {
         )
 
         val status = session.getCompletionStatus()
-        assertEquals(CompletionStatus.NO_ACTIVITY_STARTED, status)
+        assertEquals(CompletionStatus.PARTIAL_COMPLETION, status)
+    }
+
+    @Test
+    fun testEarlyCompletionOnFirstInterval() {
+        // User finishes during the first interval - should still return COMPLETED_EARLY
+        val session = ActivitySession(
+            activity_name = "Test",
+            start_timestamp = 1000L,
+            end_timestamp = 2000L,
+            total_intervals_in_activity = 5,
+            intervals_completed = 1,
+            overall_progress_percentage = 20f,
+            had_pauses = false,
+            completion_type = CompletionType.EARLY
+        )
+
+        val status = session.getCompletionStatus()
+        assertEquals(CompletionStatus.COMPLETED_EARLY, status)
+    }
+
+    @Test
+    fun testEarlyCompletionOnFirstIntervalWithSingleInterval() {
+        // Edge case: Single interval activity completed early
+        val session = ActivitySession(
+            activity_name = "Test",
+            start_timestamp = 1000L,
+            end_timestamp = 2000L,
+            total_intervals_in_activity = 1,
+            intervals_completed = 1,
+            overall_progress_percentage = 100f,
+            had_pauses = false,
+            completion_type = CompletionType.EARLY
+        )
+
+        val status = session.getCompletionStatus()
+        assertEquals(CompletionStatus.COMPLETED_EARLY, status)
+    }
+
+    @Test
+    fun testEarlyCompletionBeforeFirstIntervalComplete() {
+        // User clicks finish activity at the start of first interval (0 intervals completed)
+        val session = ActivitySession(
+            activity_name = "Test",
+            start_timestamp = 1000L,
+            end_timestamp = 2000L,
+            total_intervals_in_activity = 5,
+            intervals_completed = 0,
+            overall_progress_percentage = 0f,
+            had_pauses = false,
+            completion_type = CompletionType.EARLY
+        )
+
+        val status = session.getCompletionStatus()
+        assertEquals(CompletionStatus.COMPLETED_EARLY, status)
     }
 }

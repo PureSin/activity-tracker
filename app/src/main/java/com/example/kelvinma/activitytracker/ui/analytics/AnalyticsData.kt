@@ -17,12 +17,11 @@ data class CompletionBreakdown(
     val full: Int = 0,
     val fullWithPause: Int = 0,
     val early: Int = 0,
-    val partial: Int = 0,
-    val incomplete: Int = 0
+    val partial: Int = 0
 ) {
     val totalCompletions: Int get() = full + fullWithPause + early
     val completionRate: Float get() = if (totalSessions > 0) (totalCompletions.toFloat() / totalSessions) * 100f else 0f
-    val totalSessions: Int get() = full + fullWithPause + early + partial + incomplete
+    val totalSessions: Int get() = full + fullWithPause + early + partial
 }
 
 data class ActivityPerformance(
