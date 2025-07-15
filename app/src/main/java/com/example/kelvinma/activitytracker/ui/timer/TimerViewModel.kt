@@ -1,7 +1,11 @@
 package com.example.kelvinma.activitytracker.ui.timer
 
 import android.content.Context
+import android.os.Build
 import android.os.CountDownTimer
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import android.speech.tts.TextToSpeech
 import java.util.Locale
 import androidx.lifecycle.ViewModel
@@ -47,9 +51,11 @@ class TimerViewModel(
     private var textToSpeech: TextToSpeech? = null
     private var isTtsInitialized = false
     private var pendingSpeechText: String? = null
+    private var vibrator: Vibrator? = null
 
     init {
         Logger.i(Logger.TAG_TIMER, "Initializing timer for activity: ${activity.name}")
+        initializeVibrator()
         initializeTextToSpeech()
         // startTimer() will be called after TTS initialization
     }
@@ -90,6 +96,9 @@ class TimerViewModel(
     private fun startActivityInterval(interval: Interval, intervalIndex: Int) {
         Logger.logTimerEvent("Starting interval", "index: $intervalIndex, name: ${interval.name}")
         
+        // Provide haptic feedback when interval starts
+        performHapticFeedback()
+        
         interval.name?.let { name ->
             speakIntervalName(name)
         }
@@ -105,6 +114,8 @@ class TimerViewModel(
 
             override fun onFinish() {
                 Logger.logTimerEvent("Interval completed", "index: $intervalIndex")
+                // Provide haptic feedback when interval completes
+                performHapticFeedback()
                 finishInterval()
             }
         }.start()
@@ -125,6 +136,8 @@ class TimerViewModel(
 
                 override fun onFinish() {
                     Logger.logTimerEvent("Rest period completed", "index: $intervalIndex")
+                    // Provide haptic feedback when rest period completes
+                    performHapticFeedback()
                     finishRestPeriod()
                 }
             }.start()
@@ -186,6 +199,8 @@ class TimerViewModel(
 
                 override fun onFinish() {
                     Logger.logTimerEvent("Timer completed after resume", "index: ${_currentIntervalIndex.value}, isRest: $isRest")
+                    // Provide haptic feedback when timer completes after resume
+                    performHapticFeedback()
                     if (isRest) {
                         finishRestPeriod()
                     } else {
@@ -310,6 +325,17 @@ class TimerViewModel(
         cleanupTextToSpeech()
     }
 
+    private fun initializeVibrator() {
+        vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+            vibratorManager.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        }
+        Logger.i(Logger.TAG_AUDIO, "Vibrator initialized")
+    }
+
     private fun initializeTextToSpeech() {
         textToSpeech = TextToSpeech(context) { status ->
             if (status == TextToSpeech.SUCCESS) {
@@ -350,6 +376,29 @@ class TimerViewModel(
             // Queue the speech for when TTS is ready
             pendingSpeechText = intervalName
             Logger.i(Logger.TAG_AUDIO, "TextToSpeech not ready yet, queuing speech for: $intervalName")
+        }
+    }
+
+    private fun performHapticFeedback() {
+        try {
+            vibrator?.let { vib ->
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    // Use VibrationEffect for API 26+
+                    val effect = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        VibrationEffect.createPredefined(VibrationEffect.EFFECT_HEAVY_CLICK)
+                    } else {
+                        VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE)
+                    }
+                    vib.vibrate(effect)
+                } else {
+                    // Fallback for older devices
+                    @Suppress("DEPRECATION")
+                    vib.vibrate(100)
+                }
+                Logger.i(Logger.TAG_AUDIO, "Haptic feedback performed")
+            }
+        } catch (e: Exception) {
+            Logger.e(Logger.TAG_AUDIO, "Error performing haptic feedback", e)
         }
     }
 
