@@ -228,10 +228,13 @@ private fun getProgressText(
     isRestPeriod: Boolean,
     activity: Activity
 ): String {
+    // Calculate the actual interval number, capped at the total number of intervals
+    val actualIntervalNumber = minOf(currentIntervalIndex + 1, activity.intervals.size)
+    
     return if (isRestPeriod) {
-        "Resting after Interval ${currentIntervalIndex + 1}"
+        "Resting after Interval $actualIntervalNumber"
     } else {
-        "Interval ${currentIntervalIndex + 1} of ${activity.intervals.size}"
+        "Interval $actualIntervalNumber of ${activity.intervals.size}"
     }
 }
 
