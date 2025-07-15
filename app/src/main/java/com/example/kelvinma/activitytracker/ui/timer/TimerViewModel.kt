@@ -1,11 +1,15 @@
 package com.example.kelvinma.activitytracker.ui.timer
 
 import android.content.Context
-import android.media.MediaPlayer
+import android.os.Build
 import android.os.CountDownTimer
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
+import android.speech.tts.TextToSpeech
+import java.util.Locale
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.kelvinma.activitytracker.R
 import com.example.kelvinma.activitytracker.data.Activity
 import com.example.kelvinma.activitytracker.data.ActivitySession
 import com.example.kelvinma.activitytracker.data.ActivitySessionDao
@@ -15,7 +19,6 @@ import com.example.kelvinma.activitytracker.util.Logger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import java.io.IOException
 
 class TimerViewModel(
     private val activity: Activity,
@@ -45,10 +48,16 @@ class TimerViewModel(
     private var hadPauses = false
     private var startTime = 0L
     private var currentSession: ActivitySession? = null
+    private var textToSpeech: TextToSpeech? = null
+    private var isTtsInitialized = false
+    private var pendingSpeechText: String? = null
+    private var vibrator: Vibrator? = null
 
     init {
         Logger.i(Logger.TAG_TIMER, "Initializing timer for activity: ${activity.name}")
-        startTimer()
+        initializeVibrator()
+        initializeTextToSpeech()
+        // startTimer() will be called after TTS initialization
     }
 
     private fun startTimer() {
@@ -87,7 +96,12 @@ class TimerViewModel(
     private fun startActivityInterval(interval: Interval, intervalIndex: Int) {
         Logger.logTimerEvent("Starting interval", "index: $intervalIndex, name: ${interval.name}")
         
-        // playSound(R.raw.interval_start)
+        // Provide haptic feedback when interval starts
+        performHapticFeedback()
+        
+        interval.name?.let { name ->
+            speakIntervalName(name)
+        }
         
         // Convert duration to milliseconds based on unit
         val durationMillis = convertToMilliseconds(interval.duration, interval.duration_unit)
@@ -96,14 +110,12 @@ class TimerViewModel(
         timer = object : CountDownTimer(durationMillis, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 _timerValue.value = millisUntilFinished
-                if (millisUntilFinished / 1000 <= 3) {
-                    playSound(R.raw.progress_beep)
-                }
             }
 
             override fun onFinish() {
                 Logger.logTimerEvent("Interval completed", "index: $intervalIndex")
-                // playSound(R.raw.interval_end)
+                // Provide haptic feedback when interval completes
+                performHapticFeedback()
                 finishInterval()
             }
         }.start()
@@ -120,14 +132,12 @@ class TimerViewModel(
             timer = object : CountDownTimer(restDurationMillis, 1000) {
                 override fun onTick(millisUntilFinished: Long) {
                     _timerValue.value = millisUntilFinished
-                    if (millisUntilFinished / 1000 <= 3) {
-                        // playSound(R.raw.progress_beep)
-                    }
                 }
 
                 override fun onFinish() {
                     Logger.logTimerEvent("Rest period completed", "index: $intervalIndex")
-                    // playSound(R.raw.interval_end)
+                    // Provide haptic feedback when rest period completes
+                    performHapticFeedback()
                     finishRestPeriod()
                 }
             }.start()
@@ -185,14 +195,12 @@ class TimerViewModel(
             timer = object : CountDownTimer(remainingTime, 1000) {
                 override fun onTick(millisUntilFinished: Long) {
                     _timerValue.value = millisUntilFinished
-                    if (millisUntilFinished / 1000 <= 3) {
-                        // playSound(R.raw.progress_beep)
-                    }
                 }
 
                 override fun onFinish() {
                     Logger.logTimerEvent("Timer completed after resume", "index: ${_currentIntervalIndex.value}, isRest: $isRest")
-                    // playSound(R.raw.interval_end)
+                    // Provide haptic feedback when timer completes after resume
+                    performHapticFeedback()
                     if (isRest) {
                         finishRestPeriod()
                     } else {
@@ -250,7 +258,6 @@ class TimerViewModel(
         } else {
             // Activity finished
             _isActivityComplete.value = true
-            // playSound(R.raw.activity_complete)
             finishActivity()
         }
     }
@@ -315,48 +322,96 @@ class TimerViewModel(
     override fun onCleared() {
         super.onCleared()
         handleViewModelCleared()
+        cleanupTextToSpeech()
     }
 
-    private fun playSound(resId: Int) {
-        try {
-            Logger.logAudioEvent("Attempting to play sound", resId)
-            val mediaPlayer = MediaPlayer.create(context, resId)
-            
-            if (mediaPlayer == null) {
-                Logger.logAudioEvent("Failed to create MediaPlayer - resource not found", resId, 
-                    IOException("MediaPlayer.create returned null for resource $resId"))
-                return
-            }
-            
-            mediaPlayer.setOnCompletionListener { mp ->
-                try {
-                    mp.release()
-                    Logger.logAudioEvent("Sound playback completed and released", resId)
-                } catch (e: Exception) {
-                    Logger.logAudioEvent("Error releasing MediaPlayer", resId, e)
+    private fun initializeVibrator() {
+        vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+            vibratorManager.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        }
+        Logger.i(Logger.TAG_AUDIO, "Vibrator initialized")
+    }
+
+    private fun initializeTextToSpeech() {
+        textToSpeech = TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                val result = textToSpeech?.setLanguage(Locale.getDefault())
+                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                    Logger.w(Logger.TAG_AUDIO, "Language not supported for TTS, falling back to English")
+                    textToSpeech?.setLanguage(Locale.ENGLISH)
                 }
-            }
-            
-            mediaPlayer.setOnErrorListener { mp, what, extra ->
-                Logger.logAudioEvent("MediaPlayer error: what=$what, extra=$extra", resId, 
-                    RuntimeException("MediaPlayer error"))
-                try {
-                    mp.release()
-                } catch (e: Exception) {
-                    Logger.e(Logger.TAG_AUDIO, "Error releasing MediaPlayer after error", e)
+                isTtsInitialized = true
+                Logger.i(Logger.TAG_AUDIO, "TextToSpeech initialized successfully")
+                
+                // Now that TTS is ready, start the timer
+                startTimer()
+                
+                // Speak any pending text
+                pendingSpeechText?.let { text ->
+                    speakIntervalName(text)
+                    pendingSpeechText = null
                 }
-                true // Error handled
+            } else {
+                Logger.e(Logger.TAG_AUDIO, "TextToSpeech initialization failed")
+                isTtsInitialized = false
+                // Still start the timer even if TTS fails
+                startTimer()
             }
-            
-            mediaPlayer.start()
-            Logger.logAudioEvent("Sound playback started", resId)
-            
-        } catch (e: SecurityException) {
-            Logger.logAudioEvent("Security exception playing sound", resId, e)
-        } catch (e: IllegalStateException) {
-            Logger.logAudioEvent("IllegalState exception playing sound", resId, e)
-        } catch (e: Exception) {
-            Logger.logAudioEvent("Unexpected error playing sound", resId, e)
         }
     }
+
+    private fun speakIntervalName(intervalName: String) {
+        if (isTtsInitialized && textToSpeech != null) {
+            try {
+                textToSpeech?.speak(intervalName, TextToSpeech.QUEUE_FLUSH, null, "interval_name")
+                Logger.i(Logger.TAG_AUDIO, "Speaking interval name: $intervalName")
+            } catch (e: Exception) {
+                Logger.e(Logger.TAG_AUDIO, "Error speaking interval name: $intervalName", e)
+            }
+        } else {
+            // Queue the speech for when TTS is ready
+            pendingSpeechText = intervalName
+            Logger.i(Logger.TAG_AUDIO, "TextToSpeech not ready yet, queuing speech for: $intervalName")
+        }
+    }
+
+    private fun performHapticFeedback() {
+        try {
+            vibrator?.let { vib ->
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    // Use VibrationEffect for API 26+
+                    val effect = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        VibrationEffect.createPredefined(VibrationEffect.EFFECT_HEAVY_CLICK)
+                    } else {
+                        VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE)
+                    }
+                    vib.vibrate(effect)
+                } else {
+                    // Fallback for older devices
+                    @Suppress("DEPRECATION")
+                    vib.vibrate(100)
+                }
+                Logger.i(Logger.TAG_AUDIO, "Haptic feedback performed")
+            }
+        } catch (e: Exception) {
+            Logger.e(Logger.TAG_AUDIO, "Error performing haptic feedback", e)
+        }
+    }
+
+    private fun cleanupTextToSpeech() {
+        textToSpeech?.let {
+            if (it.isSpeaking) {
+                it.stop()
+            }
+            it.shutdown()
+            Logger.i(Logger.TAG_AUDIO, "TextToSpeech cleaned up")
+        }
+        textToSpeech = null
+        isTtsInitialized = false
+    }
+
 }

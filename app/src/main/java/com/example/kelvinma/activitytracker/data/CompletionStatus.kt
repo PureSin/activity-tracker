@@ -4,17 +4,15 @@ enum class CompletionStatus {
     COMPLETED_FULL,
     COMPLETED_FULL_WITH_PAUSE,
     COMPLETED_EARLY,
-    PARTIAL_COMPLETION,
-    NO_ACTIVITY_STARTED
+    PARTIAL_COMPLETION
 }
 
 fun ActivitySession.getCompletionStatus(): CompletionStatus {
     return when {
-        intervals_completed == 0 -> CompletionStatus.NO_ACTIVITY_STARTED
-        completion_type == CompletionType.EARLY && intervals_completed > 0 -> CompletionStatus.COMPLETED_EARLY
+        completion_type == CompletionType.EARLY -> CompletionStatus.COMPLETED_EARLY
+        total_intervals_in_activity == 0 -> CompletionStatus.PARTIAL_COMPLETION
         intervals_completed == total_intervals_in_activity && !had_pauses -> CompletionStatus.COMPLETED_FULL
         intervals_completed == total_intervals_in_activity && had_pauses -> CompletionStatus.COMPLETED_FULL_WITH_PAUSE
-        intervals_completed > 0 && intervals_completed < total_intervals_in_activity -> CompletionStatus.PARTIAL_COMPLETION
-        else -> CompletionStatus.NO_ACTIVITY_STARTED
+        else -> CompletionStatus.PARTIAL_COMPLETION
     }
 }

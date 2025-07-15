@@ -109,13 +109,6 @@ fun CompletionChart(
                             label = "Partial",
                             count = completionBreakdown.partial
                         )
-                        if (completionBreakdown.incomplete > 0) {
-                            LegendItem(
-                                color = Color(0xFFE0E0E0),
-                                label = "Incomplete",
-                                count = completionBreakdown.incomplete
-                            )
-                        }
                     }
                 }
             } else {
@@ -146,16 +139,14 @@ private fun PieChart(completionBreakdown: CompletionBreakdown) {
         Color(0xFF4CAF50), // Full
         Color(0xFF8BC34A), // Full with pauses
         Color(0xFFFF9800), // Early
-        Color(0xFFFFC107), // Partial
-        Color(0xFFE0E0E0)  // Incomplete
+        Color(0xFFFFC107)  // Partial
     )
     
     val values = listOf(
         completionBreakdown.full,
         completionBreakdown.fullWithPause,
         completionBreakdown.early,
-        completionBreakdown.partial,
-        completionBreakdown.incomplete
+        completionBreakdown.partial
     )
     
     Canvas(modifier = Modifier.size(120.dp)) {

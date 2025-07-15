@@ -61,8 +61,8 @@ The app will log each activity session with detailed completion status, includin
 - **Completion Status Classification (for daily summary/display):**
     1. **`COMPLETED_FULL`**: `intervals_completed` == `total_intervals_in_activity` AND `had_pauses` is `false`.
     2. **`COMPLETED_FULL_WITH_PAUSE`**: `intervals_completed` == `total_intervals_in_activity` AND `had_pauses` is `true`.
-    3. **`PARTIAL_COMPLETION`**: `intervals_completed` > 0 AND `intervals_completed` < `total_intervals_in_activity`. (User ended early, or app closed prematurely after at least one interval).
-    4. **`NO_ACTIVITY_STARTED`**: No log entry for the activity on a given day, or `intervals_completed` was 0.
+    3. **`COMPLETED_EARLY`**: `completion_type` == `CompletionType.EARLY` (User manually finished activity early).
+    4. **`PARTIAL_COMPLETION`**: All other cases, including when `intervals_completed` < `total_intervals_in_activity` or when `total_intervals_in_activity` == 0.
 - **Display:** History or summary views will show daily activity counts categorized by these statuses, along with overall duration and percentage progress for each logged session.
 
 ### 3. Technical Details

@@ -127,7 +127,6 @@ class AnalyticsViewModel(
         var fullWithPause = 0
         var early = 0
         var partial = 0
-        var incomplete = 0
 
         sessions.forEach { session ->
             when (session.getCompletionStatus()) {
@@ -135,11 +134,10 @@ class AnalyticsViewModel(
                 CompletionStatus.COMPLETED_FULL_WITH_PAUSE -> fullWithPause++
                 CompletionStatus.COMPLETED_EARLY -> early++
                 CompletionStatus.PARTIAL_COMPLETION -> partial++
-                CompletionStatus.NO_ACTIVITY_STARTED -> incomplete++
             }
         }
 
-        return CompletionBreakdown(full, fullWithPause, early, partial, incomplete)
+        return CompletionBreakdown(full, fullWithPause, early, partial)
     }
 
     private fun calculateActivityPerformance(activityStats: List<ActivityStatsRaw>): List<ActivityPerformance> {
