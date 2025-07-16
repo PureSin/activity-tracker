@@ -51,14 +51,6 @@ jobs:
         report-path: app/build/reports/lint-results-debug.xml
       continue-on-error: true
 
-    - name: Comment Lint Results on PR
-      uses: android-actions/android-lint-comment@v1
-      if: github.event_name == 'pull_request'
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        lint-results-path: app/build/reports/lint-results-debug.xml
-      continue-on-error: true
-
     - name: Build Debug APK
       run: ./gradlew assembleDebug --stacktrace
 
