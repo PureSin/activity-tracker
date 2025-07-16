@@ -35,10 +35,12 @@ import com.example.kelvinma.activitytracker.data.AppDatabase
 @Composable
 fun TimerScreen(activity: Activity, onFinish: () -> Unit, navController: NavController) {
     val context = LocalContext.current
+    val database = AppDatabase.getDatabase(context)
     val viewModel: TimerViewModel = viewModel(
         factory = TimerViewModelFactory(
             activity,
-            AppDatabase.getDatabase(context).activitySessionDao(),
+            database.activitySessionDao(),
+            database.categorySessionDao(),
             context
         )
     )
@@ -228,10 +230,13 @@ private fun getProgressText(
     isRestPeriod: Boolean,
     activity: Activity
 ): String {
+    // Calculate the actual interval number, capped at the total number of intervals
+    val actualIntervalNumber = minOf(currentIntervalIndex + 1, activity.intervals.size)
+    
     return if (isRestPeriod) {
-        "Resting after Interval ${currentIntervalIndex + 1}"
+        "Resting after Interval $actualIntervalNumber"
     } else {
-        "Interval ${currentIntervalIndex + 1} of ${activity.intervals.size}"
+        "Interval $actualIntervalNumber of ${activity.intervals.size}"
     }
 }
 

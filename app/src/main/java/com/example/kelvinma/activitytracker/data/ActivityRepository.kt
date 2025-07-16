@@ -88,6 +88,10 @@ class ActivityRepository(private val context: Context) {
             throw IllegalArgumentException("Activity name cannot be blank in file: $fileName")
         }
         
+        if (activity.category.isBlank()) {
+            throw IllegalArgumentException("Activity category cannot be blank in file: $fileName")
+        }
+        
         if (activity.intervals.isEmpty()) {
             throw IllegalArgumentException("Activity must have at least one interval in file: $fileName")
         }
@@ -138,6 +142,24 @@ class ActivityRepository(private val context: Context) {
                 Logger.w(Logger.TAG_REPOSITORY, "Activity not found: $name")
             }
         }
+    }
+    
+    /**
+     * Gets activities grouped by category.
+     * Returns a list of Category objects, each containing activities that belong to that category.
+     */
+    fun getActivitiesByCategory(): List<Category> {
+        Logger.d(Logger.TAG_REPOSITORY, "Loading activities grouped by category")
+        
+        return getActivities()
+            .groupBy { it.category }
+            .map { (categoryName, activities) ->
+                Category(name = categoryName, activities = activities)
+            }
+            .sortedBy { it.name }
+            .also { categories ->
+                Logger.i(Logger.TAG_REPOSITORY, "Successfully grouped activities into ${categories.size} categories")
+            }
     }
 }
 

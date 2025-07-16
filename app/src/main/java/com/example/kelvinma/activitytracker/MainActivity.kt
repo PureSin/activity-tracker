@@ -39,6 +39,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.kelvinma.activitytracker.data.Activity
 import com.example.kelvinma.activitytracker.data.ActivityRepository
 import com.example.kelvinma.activitytracker.data.AppDatabase
+import com.example.kelvinma.activitytracker.data.Category
 import com.example.kelvinma.activitytracker.ui.activitydetail.ActivityDetailScreen
 import com.example.kelvinma.activitytracker.ui.activitylist.ActivityListScreen
 import com.example.kelvinma.activitytracker.ui.analytics.AnalyticsScreen
@@ -68,6 +69,7 @@ class MainActivity : ComponentActivity() {
 private fun AppContent() {
     val context = LocalContext.current
     var activities by remember { mutableStateOf<List<Activity>>(emptyList()) }
+    var categories by remember { mutableStateOf<List<Category>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var database by remember { mutableStateOf<AppDatabase?>(null) }
@@ -85,7 +87,7 @@ private fun AppContent() {
                 throw e
             }
             
-            // Load activities
+            // Load activities and categories
             val activityRepository = ActivityRepository(context)
             val loadedActivities = try {
                 activityRepository.getActivities()
@@ -94,14 +96,22 @@ private fun AppContent() {
                 emptyList<Activity>()
             }
             
+            val loadedCategories = try {
+                activityRepository.getActivitiesByCategory()
+            } catch (e: Exception) {
+                Logger.e(Logger.TAG_REPOSITORY, "Failed to load categories", e)
+                emptyList<Category>()
+            }
+            
             if (loadedActivities.isEmpty()) {
                 Logger.w(Logger.TAG_NAVIGATION, "No activities loaded - app may not function properly")
                 errorMessage = context.getString(R.string.error_no_activities_found)
             } else {
-                Logger.i(Logger.TAG_NAVIGATION, "Successfully loaded ${loadedActivities.size} activities")
+                Logger.i(Logger.TAG_NAVIGATION, "Successfully loaded ${loadedActivities.size} activities in ${loadedCategories.size} categories")
             }
             
             activities = loadedActivities
+            categories = loadedCategories
             database = db
             isLoading = false
             
@@ -126,6 +136,7 @@ private fun AppContent() {
         database != null -> {
             MainNavigation(
                 activities = activities,
+                categories = categories,
                 database = database!!,
                 hasActivitiesError = errorMessage != null
             )
@@ -185,6 +196,7 @@ private fun ErrorScreen(errorMessage: String, onRetry: () -> Unit) {
 @Composable
 private fun MainNavigation(
     activities: List<Activity>,
+    categories: List<Category>,
     database: AppDatabase,
     hasActivitiesError: Boolean
 ) {
@@ -192,7 +204,7 @@ private fun MainNavigation(
     
     NavHost(navController = navController, startDestination = "activityList") {
         composable("activityList") {
-            ActivityListScreen(navController, activities, database.activitySessionDao())
+            ActivityListScreen(navController, categories, database.activitySessionDao())
         }
         
         composable("activityDetail/{activityName}") { backStackEntry ->

@@ -253,6 +253,7 @@ fun ActivityDetailScreenPreview() {
         val navController = rememberNavController()
         val activity = Activity(
             name = "Test Activity",
+            category = "Test",
             intervals = listOf(
                 Interval("Warm-up", 300, "seconds"),
                 Interval("Work", 600, "seconds"),

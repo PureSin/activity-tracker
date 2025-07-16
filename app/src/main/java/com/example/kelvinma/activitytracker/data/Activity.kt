@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Activity(
     val name: String,
+    val category: String,
     val intervals: List<Interval>
 )
 
@@ -15,4 +16,9 @@ data class Interval(
     val duration_unit: String,
     val rest_duration: Int? = null,
     val rest_duration_unit: String? = null
+)
+
+data class Category(
+    val name: String,
+    val activities: List<Activity>
 )
