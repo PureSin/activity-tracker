@@ -31,6 +31,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.kelvinma.activitytracker.data.Activity
 import com.example.kelvinma.activitytracker.data.AppDatabase
+import java.util.Locale
 
 @Composable
 fun TimerScreen(activity: Activity, onFinish: () -> Unit, navController: NavController) {
@@ -117,7 +118,7 @@ fun TimerScreen(activity: Activity, onFinish: () -> Unit, navController: NavCont
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Progress: ${String.format("%.1f", progressPercentage)}%",
+                            text = "Progress: ${String.format(Locale.getDefault(), "%.1f", progressPercentage)}%",
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                             textAlign = TextAlign.Center
@@ -255,7 +256,7 @@ private fun getTimerDisplayColor(
 fun formatTime(seconds: Long): String {
     val minutes = seconds / 60
     val remainingSeconds = seconds % 60
-    return String.format("%02d:%02d", minutes, remainingSeconds)
+    return String.format(Locale.getDefault(), "%02d:%02d", minutes, remainingSeconds)
 }
 
 @Composable

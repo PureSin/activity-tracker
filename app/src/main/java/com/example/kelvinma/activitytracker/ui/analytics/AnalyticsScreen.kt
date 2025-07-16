@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import java.util.Locale
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.kelvinma.activitytracker.data.AppDatabase
@@ -130,7 +131,7 @@ fun AnalyticsScreen(navController: NavController) {
                             )
                             MetricsCard(
                                 title = "Completion",
-                                value = "${String.format("%.0f", analyticsData.completionRate)}%",
+                                value = "${String.format(Locale.getDefault(), "%.0f", analyticsData.completionRate)}%",
                                 icon = Icons.Default.CheckCircle,
                                 modifier = Modifier.weight(1f)
                             )
@@ -251,7 +252,7 @@ fun ActivityPerformanceCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                     )
                     Text(
-                        text = "${String.format("%.0f", performance.completionRate)}%",
+                        text = "${String.format(Locale.getDefault(), "%.0f", performance.completionRate)}%",
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Bold
@@ -279,7 +280,7 @@ fun ActivityPerformanceCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                     )
                     Text(
-                        text = "${String.format("%.0f", performance.averageProgress)}%",
+                        text = "${String.format(Locale.getDefault(), "%.0f", performance.averageProgress)}%",
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Bold
