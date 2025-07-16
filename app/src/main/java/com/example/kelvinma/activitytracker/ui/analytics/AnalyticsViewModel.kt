@@ -10,6 +10,7 @@ import com.example.kelvinma.activitytracker.data.CompletionStatus
 import com.example.kelvinma.activitytracker.data.CompletionType
 import com.example.kelvinma.activitytracker.data.getCompletionStatus
 import com.example.kelvinma.activitytracker.util.DatabaseExporter
+import com.example.kelvinma.activitytracker.util.ExportResult
 import com.example.kelvinma.activitytracker.util.Logger
 import com.example.kelvinma.activitytracker.util.Result
 import com.example.kelvinma.activitytracker.util.safeSuspendCall
@@ -41,6 +42,9 @@ class AnalyticsViewModel(
 
     private val _exportEvent = MutableStateFlow<Intent?>(null)
     val exportEvent: StateFlow<Intent?> = _exportEvent
+
+    private val _exportResult = MutableStateFlow<ExportResult?>(null)
+    val exportResult: StateFlow<ExportResult?> = _exportResult
 
     init {
         Logger.d(Logger.TAG_ANALYTICS, "Initializing AnalyticsViewModel")
@@ -308,11 +312,12 @@ class AnalyticsViewModel(
             try {
                 Logger.d(Logger.TAG_ANALYTICS, "Starting database export for email: $recipientEmail")
                 val exporter = DatabaseExporter(applicationContext)
-                val emailIntent = exporter.exportDatabaseViaEmail(recipientEmail)
+                val exportResult = exporter.exportDatabaseViaEmail(recipientEmail)
                 
-                if (emailIntent != null) {
-                    _exportEvent.value = emailIntent
-                    Logger.i(Logger.TAG_ANALYTICS, "Database export intent created successfully")
+                if (exportResult != null) {
+                    _exportResult.value = exportResult
+                    _exportEvent.value = exportResult.intent
+                    Logger.i(Logger.TAG_ANALYTICS, "Database export intent created successfully, size: ${exportResult.getFormattedFileSize()}")
                 } else {
                     _errorMessage.value = "Failed to create database export. Please try again."
                     Logger.e(Logger.TAG_ANALYTICS, "Failed to create database export intent")
@@ -328,5 +333,6 @@ class AnalyticsViewModel(
 
     fun clearExportEvent() {
         _exportEvent.value = null
+        _exportResult.value = null
     }
 }

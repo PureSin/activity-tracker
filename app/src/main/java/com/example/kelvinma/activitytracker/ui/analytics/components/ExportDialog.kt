@@ -25,11 +25,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.kelvinma.activitytracker.util.ExportResult
 
 @Composable
 fun ExportDialog(
     isVisible: Boolean,
     isExporting: Boolean,
+    exportResult: ExportResult?,
     onDismiss: () -> Unit,
     onExport: (String) -> Unit
 ) {
@@ -77,6 +79,16 @@ fun ExportDialog(
                         } else null,
                         modifier = Modifier.fillMaxWidth()
                     )
+
+                    // Show file size if export is ready
+                    exportResult?.let { result ->
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = "File size: ${result.getFormattedFileSize()}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
 
                     if (isExporting) {
                         Spacer(modifier = Modifier.height(16.dp))

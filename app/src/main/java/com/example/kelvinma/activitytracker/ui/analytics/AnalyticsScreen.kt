@@ -66,6 +66,7 @@ fun AnalyticsScreen(navController: NavController) {
     val isLoading by viewModel.isLoading.collectAsState()
     val isExporting by viewModel.isExporting.collectAsState()
     val exportEvent by viewModel.exportEvent.collectAsState()
+    val exportResult by viewModel.exportResult.collectAsState()
     
     var showExportDialog by remember { mutableStateOf(false) }
     
@@ -237,6 +238,7 @@ fun AnalyticsScreen(navController: NavController) {
     ExportDialog(
         isVisible = showExportDialog,
         isExporting = isExporting,
+        exportResult = exportResult,
         onDismiss = { showExportDialog = false },
         onExport = { email -> viewModel.exportDatabase(email) }
     )

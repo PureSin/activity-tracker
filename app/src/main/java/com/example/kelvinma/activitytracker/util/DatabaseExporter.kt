@@ -17,7 +17,7 @@ class DatabaseExporter(private val context: Context) {
     /**
      * Exports the SQLite database file and creates an email intent with the file attached
      */
-    fun exportDatabaseViaEmail(recipientEmail: String): Intent? {
+    fun exportDatabaseViaEmail(recipientEmail: String): ExportResult? {
         return try {
             // Get the current database file
             val databasePath = context.getDatabasePath("activity_tracker_database")
@@ -40,6 +40,9 @@ class DatabaseExporter(private val context: Context) {
             // Copy database file to export location
             copyFile(databasePath, exportFile)
 
+            // Get file size after copying
+            val fileSizeBytes = exportFile.length()
+
             // Get URI for sharing via FileProvider
             val fileUri: Uri = FileProvider.getUriForFile(
                 context,
@@ -52,13 +55,18 @@ class DatabaseExporter(private val context: Context) {
                 type = "application/vnd.sqlite3"
                 putExtra(Intent.EXTRA_EMAIL, arrayOf(recipientEmail))
                 putExtra(Intent.EXTRA_SUBJECT, "Activity Tracker Data Export - $timestamp")
-                putExtra(Intent.EXTRA_TEXT, buildEmailBody(timestamp))
+                putExtra(Intent.EXTRA_TEXT, buildEmailBody(timestamp, fileSizeBytes))
                 putExtra(Intent.EXTRA_STREAM, fileUri)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
 
-            Logger.i("DatabaseExporter", "Database export prepared for email: ${exportFile.absolutePath}")
-            emailIntent
+            Logger.i("DatabaseExporter", "Database export prepared for email: ${exportFile.absolutePath}, size: $fileSizeBytes bytes")
+            
+            ExportResult(
+                intent = emailIntent,
+                fileSizeBytes = fileSizeBytes,
+                fileName = exportFile.name
+            )
 
         } catch (e: Exception) {
             Logger.e("DatabaseExporter", "Failed to export database", e)
@@ -74,11 +82,13 @@ class DatabaseExporter(private val context: Context) {
         }
     }
 
-    private fun buildEmailBody(timestamp: String): String {
+    private fun buildEmailBody(timestamp: String, fileSizeBytes: Long): String {
+        val fileSize = ExportResult(Intent(), fileSizeBytes, "").getFormattedFileSize()
         return """
             Activity Tracker Data Export
             
             Export Date: $timestamp
+            File Size: $fileSize
             
             This email contains your Activity Tracker session data as an SQLite database file.
             

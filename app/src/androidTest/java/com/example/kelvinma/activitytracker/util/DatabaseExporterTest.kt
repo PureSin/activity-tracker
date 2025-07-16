@@ -44,13 +44,15 @@ class DatabaseExporterTest {
     }
 
     @Test
-    fun exportDatabaseViaEmail_withValidEmail_returnsValidIntent() {
+    fun exportDatabaseViaEmail_withValidEmail_returnsValidExportResult() {
         val testEmail = "test@example.com"
         
-        val intent = exporter.exportDatabaseViaEmail(testEmail)
+        val exportResult = exporter.exportDatabaseViaEmail(testEmail)
         
-        assertNotNull("Intent should not be null", intent)
-        assertEquals("Intent action should be ACTION_SEND", Intent.ACTION_SEND, intent!!.action)
+        assertNotNull("ExportResult should not be null", exportResult)
+        
+        val intent = exportResult!!.intent
+        assertEquals("Intent action should be ACTION_SEND", Intent.ACTION_SEND, intent.action)
         assertEquals("Intent type should be sqlite3", "application/vnd.sqlite3", intent.type)
         
         val emailArray = intent.getStringArrayExtra(Intent.EXTRA_EMAIL)
@@ -66,9 +68,15 @@ class DatabaseExporterTest {
         assertNotNull("Email body should not be null", body)
         assertTrue("Body should contain export info", body!!.contains("Activity Tracker Data Export"))
         assertTrue("Body should mention database tables", body.contains("activity_sessions"))
+        assertTrue("Body should contain file size", body.contains("File Size:"))
         
         val streamUri = intent.getParcelableExtra(Intent.EXTRA_STREAM, android.net.Uri::class.java)
         assertNotNull("Stream URI should not be null", streamUri)
+        
+        // Test file size information
+        assertTrue("File size should be greater than 0", exportResult.fileSizeBytes > 0)
+        assertNotNull("Formatted file size should not be null", exportResult.getFormattedFileSize())
+        assertTrue("File name should contain export pattern", exportResult.fileName.contains("activity_tracker_export"))
     }
 
     @Test
@@ -76,18 +84,18 @@ class DatabaseExporterTest {
         // Delete the test database
         testDbFile.delete()
         
-        val intent = exporter.exportDatabaseViaEmail("test@example.com")
+        val exportResult = exporter.exportDatabaseViaEmail("test@example.com")
         
-        assertNull("Intent should be null when database doesn't exist", intent)
+        assertNull("ExportResult should be null when database doesn't exist", exportResult)
     }
 
     @Test
     fun exportDatabaseViaEmail_createsExportFile() {
         val testEmail = "test@example.com"
         
-        val intent = exporter.exportDatabaseViaEmail(testEmail)
+        val exportResult = exporter.exportDatabaseViaEmail(testEmail)
         
-        assertNotNull("Intent should not be null", intent)
+        assertNotNull("ExportResult should not be null", exportResult)
         
         // Check that export directory was created
         val exportDir = File(context.getExternalFilesDir(null), "exports")
