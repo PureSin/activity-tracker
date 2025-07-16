@@ -17,7 +17,7 @@ class DataModelTest {
             )
         )
         
-        val activity = Activity("Test Activity", intervals)
+        val activity = Activity("Test Activity", "Test", intervals)
         
         assertEquals("Test Activity", activity.name)
         assertEquals(1, activity.intervals.size)
@@ -60,6 +60,7 @@ class DataModelTest {
     fun testActivitySession_creation() {
         val session = ActivitySession(
             activity_name = "Test Activity",
+            activity_category = "Test",
             start_timestamp = 1000L,
             end_timestamp = 2000L,
             total_intervals_in_activity = 3,
@@ -97,7 +98,7 @@ class DataModelTest {
             Interval("Interval 3", 60, "seconds")
         )
         
-        val activity = Activity("Multi-Interval Activity", intervals)
+        val activity = Activity("Multi-Interval Activity", "Test", intervals)
         
         assertEquals("Multi-Interval Activity", activity.name)
         assertEquals(3, activity.intervals.size)
@@ -114,6 +115,7 @@ class DataModelTest {
     fun testActivitySession_progressCalculation() {
         val session = ActivitySession(
             activity_name = "Progress Test",
+            activity_category = "Test",
             start_timestamp = 1000L,
             end_timestamp = 2000L,
             total_intervals_in_activity = 4,

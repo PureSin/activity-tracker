@@ -35,10 +35,12 @@ import com.example.kelvinma.activitytracker.data.AppDatabase
 @Composable
 fun TimerScreen(activity: Activity, onFinish: () -> Unit, navController: NavController) {
     val context = LocalContext.current
+    val database = AppDatabase.getDatabase(context)
     val viewModel: TimerViewModel = viewModel(
         factory = TimerViewModelFactory(
             activity,
-            AppDatabase.getDatabase(context).activitySessionDao(),
+            database.activitySessionDao(),
+            database.categorySessionDao(),
             context
         )
     )

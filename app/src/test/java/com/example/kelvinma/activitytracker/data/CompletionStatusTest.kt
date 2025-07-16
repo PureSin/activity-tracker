@@ -9,6 +9,7 @@ class CompletionStatusTest {
     fun testNoActivityStarted() {
         val session = ActivitySession(
             activity_name = "Test",
+            activity_category = "Test",
             start_timestamp = 1000L,
             end_timestamp = 2000L,
             total_intervals_in_activity = 5,
@@ -26,6 +27,7 @@ class CompletionStatusTest {
     fun testCompletedEarly() {
         val session = ActivitySession(
             activity_name = "Test",
+            activity_category = "Test",
             start_timestamp = 1000L,
             end_timestamp = 2000L,
             total_intervals_in_activity = 5,
@@ -43,6 +45,7 @@ class CompletionStatusTest {
     fun testCompletedFull() {
         val session = ActivitySession(
             activity_name = "Test",
+            activity_category = "Test",
             start_timestamp = 1000L,
             end_timestamp = 2000L,
             total_intervals_in_activity = 5,
@@ -60,6 +63,7 @@ class CompletionStatusTest {
     fun testCompletedFullWithPause() {
         val session = ActivitySession(
             activity_name = "Test",
+            activity_category = "Test",
             start_timestamp = 1000L,
             end_timestamp = 2000L,
             total_intervals_in_activity = 5,
@@ -77,6 +81,7 @@ class CompletionStatusTest {
     fun testPartialCompletion() {
         val session = ActivitySession(
             activity_name = "Test",
+            activity_category = "Test",
             start_timestamp = 1000L,
             end_timestamp = 2000L,
             total_intervals_in_activity = 5,
@@ -94,6 +99,7 @@ class CompletionStatusTest {
     fun testPartialCompletionWithPause() {
         val session = ActivitySession(
             activity_name = "Test",
+            activity_category = "Test",
             start_timestamp = 1000L,
             end_timestamp = 2000L,
             total_intervals_in_activity = 5,
@@ -112,6 +118,7 @@ class CompletionStatusTest {
         // Even if intervals_completed = total_intervals, early completion should take precedence
         val session = ActivitySession(
             activity_name = "Test",
+            activity_category = "Test",
             start_timestamp = 1000L,
             end_timestamp = 2000L,
             total_intervals_in_activity = 5,
@@ -129,6 +136,7 @@ class CompletionStatusTest {
     fun testEarlyCompletionWithPartialProgress() {
         val session = ActivitySession(
             activity_name = "Test",
+            activity_category = "Test",
             start_timestamp = 1000L,
             end_timestamp = 2000L,
             total_intervals_in_activity = 10,
@@ -147,6 +155,7 @@ class CompletionStatusTest {
         // Updated: If completion_type is EARLY, it should return COMPLETED_EARLY regardless of progress
         val session = ActivitySession(
             activity_name = "Test",
+            activity_category = "Test",
             start_timestamp = 1000L,
             end_timestamp = 2000L,
             total_intervals_in_activity = 5,
@@ -164,6 +173,7 @@ class CompletionStatusTest {
     fun testBoundaryCase_oneInterval() {
         val session = ActivitySession(
             activity_name = "Test",
+            activity_category = "Test",
             start_timestamp = 1000L,
             end_timestamp = 2000L,
             total_intervals_in_activity = 1,
@@ -181,6 +191,7 @@ class CompletionStatusTest {
     fun testBoundaryCase_zeroIntervals() {
         val session = ActivitySession(
             activity_name = "Test",
+            activity_category = "Test",
             start_timestamp = 1000L,
             end_timestamp = 2000L,
             total_intervals_in_activity = 0,
@@ -199,6 +210,7 @@ class CompletionStatusTest {
         // User finishes during the first interval - should still return COMPLETED_EARLY
         val session = ActivitySession(
             activity_name = "Test",
+            activity_category = "Test",
             start_timestamp = 1000L,
             end_timestamp = 2000L,
             total_intervals_in_activity = 5,
@@ -217,6 +229,7 @@ class CompletionStatusTest {
         // Edge case: Single interval activity completed early
         val session = ActivitySession(
             activity_name = "Test",
+            activity_category = "Test",
             start_timestamp = 1000L,
             end_timestamp = 2000L,
             total_intervals_in_activity = 1,
@@ -235,6 +248,7 @@ class CompletionStatusTest {
         // User clicks finish activity at the start of first interval (0 intervals completed)
         val session = ActivitySession(
             activity_name = "Test",
+            activity_category = "Test",
             start_timestamp = 1000L,
             end_timestamp = 2000L,
             total_intervals_in_activity = 5,

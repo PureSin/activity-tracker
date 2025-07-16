@@ -8,10 +8,11 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.kelvinma.activitytracker.util.Logger
 
-@Database(entities = [ActivitySession::class], version = 2, exportSchema = false)
+@Database(entities = [ActivitySession::class, CategorySession::class], version = 3, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun activitySessionDao(): ActivitySessionDao
+    abstract fun categorySessionDao(): CategorySessionDao
 
     companion object {
         @Volatile
@@ -30,6 +31,33 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                try {
+                    Logger.i(Logger.TAG_MIGRATION, "Starting migration from version 2 to 3")
+                    
+                    // Add category column to activity_sessions table
+                    db.execSQL("ALTER TABLE activity_sessions ADD COLUMN activity_category TEXT NOT NULL DEFAULT ''")
+                    
+                    // Create category_sessions table
+                    db.execSQL("""
+                        CREATE TABLE IF NOT EXISTS category_sessions (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                            category_name TEXT NOT NULL,
+                            completed_activity_name TEXT NOT NULL,
+                            completion_date TEXT NOT NULL,
+                            completion_timestamp INTEGER NOT NULL
+                        )
+                    """)
+                    
+                    Logger.i(Logger.TAG_MIGRATION, "Successfully completed migration from version 2 to 3")
+                } catch (e: Exception) {
+                    Logger.e(Logger.TAG_MIGRATION, "Failed to migrate database from version 2 to 3", e)
+                    throw e // Re-throw to let Room handle the failure
+                }
+            }
+        }
+
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 try {
@@ -39,7 +67,7 @@ abstract class AppDatabase : RoomDatabase() {
                         AppDatabase::class.java,
                         "activity_tracker_database"
                     )
-                    .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                     .fallbackToDestructiveMigration() // Add fallback for unhandled migrations
                     .setJournalMode(RoomDatabase.JournalMode.TRUNCATE) // Better for single-user apps
                     .build()

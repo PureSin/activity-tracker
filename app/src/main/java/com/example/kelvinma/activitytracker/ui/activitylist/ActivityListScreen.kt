@@ -15,6 +15,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,7 +27,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.kelvinma.activitytracker.data.Activity
 import com.example.kelvinma.activitytracker.data.ActivitySessionDao
+import com.example.kelvinma.activitytracker.data.Category
 import com.example.kelvinma.activitytracker.data.CompletionStatus
 import com.example.kelvinma.activitytracker.data.getCompletionStatus
 import java.util.Calendar
@@ -92,9 +97,10 @@ fun calculateTotalDuration(activity: Activity): String {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ActivityListScreen(navController: NavController, activities: List<Activity>, activitySessionDao: ActivitySessionDao) {
+fun ActivityListScreen(navController: NavController, categories: List<Category>, activitySessionDao: ActivitySessionDao) {
     val (startOfDay, endOfDay) = remember { getTodayTimestamps() }
     val todaySessions by activitySessionDao.getSessionsForDay(startOfDay, endOfDay).collectAsState(initial = emptyList())
+    
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -106,7 +112,7 @@ fun ActivityListScreen(navController: NavController, activities: List<Activity>,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Activity List",
+                text = "Activity Categories",
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -124,67 +130,184 @@ fun ActivityListScreen(navController: NavController, activities: List<Activity>,
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(activities) { activity ->
-                val isCompletedToday = todaySessions.any { session ->
-                    session.activity_name == activity.name && 
-                    (session.getCompletionStatus() == CompletionStatus.COMPLETED_FULL ||
-                     session.getCompletionStatus() == CompletionStatus.COMPLETED_FULL_WITH_PAUSE ||
-                     session.getCompletionStatus() == CompletionStatus.COMPLETED_EARLY)
-                }
-                Card(
-                    onClick = { navController.navigate("activityDetail/${activity.name}") },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    ),
-                    elevation = CardDefaults.cardElevation(
-                        defaultElevation = 2.dp
-                    )
+            items(categories) { category ->
+                CategoryCard(
+                    category = category,
+                    todaySessions = todaySessions,
+                    navController = navController
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CategoryCard(
+    category: Category,
+    todaySessions: List<com.example.kelvinma.activitytracker.data.ActivitySession>,
+    navController: NavController
+) {
+    var isExpanded by remember { mutableStateOf(true) }
+    
+    // Check if any activity in this category is completed today
+    val isCategoryCompletedToday = todaySessions.any { session ->
+        category.activities.any { activity ->
+            session.activity_name == activity.name && 
+            (session.getCompletionStatus() == CompletionStatus.COMPLETED_FULL ||
+             session.getCompletionStatus() == CompletionStatus.COMPLETED_FULL_WITH_PAUSE ||
+             session.getCompletionStatus() == CompletionStatus.COMPLETED_EARLY)
+        }
+    }
+    
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isCategoryCompletedToday) 
+                MaterialTheme.colorScheme.primaryContainer 
+            else 
+                MaterialTheme.colorScheme.surfaceVariant
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp
+        )
+    ) {
+        Column {
+            // Category Header
+            Card(
+                onClick = { isExpanded = !isExpanded },
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.Transparent
+                )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Row(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .fillMaxWidth(),
-                        verticalAlignment = Alignment.Top
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column(
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(
-                                text = activity.name,
-                                style = MaterialTheme.typography.headlineSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            
-                            Spacer(modifier = Modifier.height(8.dp))
-                            
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.PlayArrow,
-                                    contentDescription = "Duration",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                    modifier = Modifier.padding(end = 4.dp)
-                                )
-                                Text(
-                                    text = calculateTotalDuration(activity),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                                )
-                            }
-                        }
+                        Text(
+                            text = category.name,
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = if (isCategoryCompletedToday) 
+                                MaterialTheme.colorScheme.onPrimaryContainer
+                            else 
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                         
-                        if (isCompletedToday) {
+                        if (isCategoryCompletedToday) {
+                            Spacer(modifier = Modifier.width(8.dp))
                             Icon(
                                 imageVector = Icons.Default.CheckCircle,
-                                contentDescription = "Completed today",
-                                tint = Color(0xFF4CAF50), // Green color
-                                modifier = Modifier.padding(start = 8.dp)
+                                contentDescription = "Category completed today",
+                                tint = Color(0xFF4CAF50)
                             )
                         }
                     }
+                    
+                    Icon(
+                        imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                        contentDescription = if (isExpanded) "Collapse" else "Expand",
+                        tint = if (isCategoryCompletedToday) 
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        else 
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
+            }
+            
+            // Activities List (shown when expanded)
+            if (isExpanded) {
+                Column(
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+                ) {
+                    category.activities.forEach { activity ->
+                        val isActivityCompletedToday = todaySessions.any { session ->
+                            session.activity_name == activity.name && 
+                            (session.getCompletionStatus() == CompletionStatus.COMPLETED_FULL ||
+                             session.getCompletionStatus() == CompletionStatus.COMPLETED_FULL_WITH_PAUSE ||
+                             session.getCompletionStatus() == CompletionStatus.COMPLETED_EARLY)
+                        }
+                        
+                        ActivityCard(
+                            activity = activity,
+                            isCompletedToday = isActivityCompletedToday,
+                            navController = navController
+                        )
+                        
+                        if (activity != category.activities.last()) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ActivityCard(
+    activity: Activity,
+    isCompletedToday: Boolean,
+    navController: NavController
+) {
+    Card(
+        onClick = { navController.navigate("activityDetail/${activity.name}") },
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 1.dp
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(12.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.Top
+        ) {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = activity.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                
+                Spacer(modifier = Modifier.height(4.dp))
+                
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.PlayArrow,
+                        contentDescription = "Duration",
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        modifier = Modifier.padding(end = 4.dp)
+                    )
+                    Text(
+                        text = calculateTotalDuration(activity),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                }
+            }
+            
+            if (isCompletedToday) {
+                Icon(
+                    imageVector = Icons.Default.CheckCircle,
+                    contentDescription = "Completed today",
+                    tint = Color(0xFF4CAF50),
+                    modifier = Modifier.padding(start = 8.dp)
+                )
             }
         }
     }

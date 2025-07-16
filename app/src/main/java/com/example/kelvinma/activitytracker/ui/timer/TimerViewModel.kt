@@ -7,12 +7,16 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
 import android.speech.tts.TextToSpeech
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.kelvinma.activitytracker.data.Activity
 import com.example.kelvinma.activitytracker.data.ActivitySession
 import com.example.kelvinma.activitytracker.data.ActivitySessionDao
+import com.example.kelvinma.activitytracker.data.CategorySession
+import com.example.kelvinma.activitytracker.data.CategorySessionDao
 import com.example.kelvinma.activitytracker.data.CompletionType
 import com.example.kelvinma.activitytracker.data.Interval
 import com.example.kelvinma.activitytracker.util.Logger
@@ -23,6 +27,7 @@ import kotlinx.coroutines.launch
 class TimerViewModel(
     private val activity: Activity,
     private val activitySessionDao: ActivitySessionDao,
+    private val categorySessionDao: CategorySessionDao,
     private val context: Context
 ) : ViewModel() {
 
@@ -165,6 +170,7 @@ class TimerViewModel(
     private fun createInitialSession() {
         currentSession = ActivitySession(
             activity_name = activity.name,
+            activity_category = activity.category,
             start_timestamp = startTime,
             end_timestamp = startTime, // Will be updated when session ends
             total_intervals_in_activity = activity.intervals.size,
@@ -296,6 +302,11 @@ class TimerViewModel(
                     Logger.d(Logger.TAG_DATABASE, "Saving session for activity: ${session.activity_name}")
                     activitySessionDao.insert(session)
                     Logger.logDatabaseOperation("Insert session for ${session.activity_name}", true)
+                    
+                    // Save category session if activity was completed (not just partial progress)
+                    if (isActivityCompleted(session)) {
+                        saveCategorySession(session)
+                    }
                 } catch (e: Exception) {
                     Logger.logDatabaseOperation("Insert session for ${session.activity_name}", false, e)
                     Logger.e(Logger.TAG_TIMER, "Failed to save session to database", e)
@@ -303,6 +314,41 @@ class TimerViewModel(
             }
         } ?: run {
             Logger.w(Logger.TAG_TIMER, "Attempted to save null session")
+        }
+    }
+    
+    private fun isActivityCompleted(session: ActivitySession): Boolean {
+        return session.completion_type == CompletionType.NATURAL || 
+               session.completion_type == CompletionType.EARLY ||
+               session.intervals_completed == session.total_intervals_in_activity
+    }
+    
+    private suspend fun saveCategorySession(session: ActivitySession) {
+        try {
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val currentDate = dateFormat.format(Date())
+            
+            // Check if category was already completed today
+            val existingCategorySession = categorySessionDao.getCategorySessionForDate(
+                session.activity_category, 
+                currentDate
+            )
+            
+            if (existingCategorySession == null) {
+                val categorySession = CategorySession(
+                    category_name = session.activity_category,
+                    completed_activity_name = session.activity_name,
+                    completion_date = currentDate,
+                    completion_timestamp = System.currentTimeMillis()
+                )
+                
+                categorySessionDao.insert(categorySession)
+                Logger.d(Logger.TAG_DATABASE, "Saved category session for: ${session.activity_category}")
+            } else {
+                Logger.d(Logger.TAG_DATABASE, "Category ${session.activity_category} already completed today")
+            }
+        } catch (e: Exception) {
+            Logger.e(Logger.TAG_TIMER, "Failed to save category session", e)
         }
     }
 
