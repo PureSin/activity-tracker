@@ -28,8 +28,10 @@ class TimerViewModel(
     private val activity: Activity,
     private val activitySessionDao: ActivitySessionDao,
     private val categorySessionDao: CategorySessionDao,
-    private val context: Context
+    context: Context
 ) : ViewModel() {
+    
+    private val applicationContext = context.applicationContext
 
     private val _timerValue = MutableStateFlow(0L)
     val timerValue: StateFlow<Long> = _timerValue
@@ -377,17 +379,17 @@ class TimerViewModel(
 
     private fun initializeVibrator() {
         vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+            val vibratorManager = applicationContext.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
             vibratorManager.defaultVibrator
         } else {
             @Suppress("DEPRECATION")
-            context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+            applicationContext.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         }
         Logger.i(Logger.TAG_AUDIO, "Vibrator initialized")
     }
 
     private fun initializeTextToSpeech() {
-        textToSpeech = TextToSpeech(context) { status ->
+        textToSpeech = TextToSpeech(applicationContext) { status ->
             if (status == TextToSpeech.SUCCESS) {
                 val result = textToSpeech?.setLanguage(Locale.getDefault())
                 if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
