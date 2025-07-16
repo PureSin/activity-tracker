@@ -1,5 +1,6 @@
 package com.example.kelvinma.activitytracker.ui.analytics
 
+import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,7 +19,7 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -29,8 +30,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -41,6 +46,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.kelvinma.activitytracker.data.AppDatabase
 import com.example.kelvinma.activitytracker.ui.analytics.components.CompletionChart
+import com.example.kelvinma.activitytracker.ui.analytics.components.ExportDialog
 import com.example.kelvinma.activitytracker.ui.analytics.components.InsightCard
 import com.example.kelvinma.activitytracker.ui.analytics.components.MetricsCard
 import com.example.kelvinma.activitytracker.ui.analytics.components.StreakDisplay
@@ -58,6 +64,19 @@ fun AnalyticsScreen(navController: NavController) {
     
     val analyticsData by viewModel.analyticsData.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val isExporting by viewModel.isExporting.collectAsState()
+    val exportEvent by viewModel.exportEvent.collectAsState()
+    
+    var showExportDialog by remember { mutableStateOf(false) }
+    
+    // Handle export intent
+    LaunchedEffect(exportEvent) {
+        exportEvent?.let { intent ->
+            context.startActivity(Intent.createChooser(intent, "Send Database Export"))
+            viewModel.clearExportEvent()
+            showExportDialog = false
+        }
+    }
     
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -87,10 +106,10 @@ fun AnalyticsScreen(navController: NavController) {
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f)
                 )
-                IconButton(onClick = { viewModel.refreshData() }) {
+                IconButton(onClick = { showExportDialog = true }) {
                     Icon(
-                        Icons.Default.Refresh,
-                        contentDescription = "Refresh",
+                        Icons.Default.Share,
+                        contentDescription = "Export Data",
                         tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
@@ -213,6 +232,14 @@ fun AnalyticsScreen(navController: NavController) {
             }
         }
     }
+    
+    // Export Dialog
+    ExportDialog(
+        isVisible = showExportDialog,
+        isExporting = isExporting,
+        onDismiss = { showExportDialog = false },
+        onExport = { email -> viewModel.exportDatabase(email) }
+    )
 }
 
 @Composable
