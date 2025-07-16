@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.kelvinma.activitytracker.ui.analytics.CompletionBreakdown
+import java.util.Locale
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -72,7 +73,7 @@ fun CompletionChart(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = "${String.format("%.0f", completionBreakdown.completionRate)}%",
+                                text = "${String.format(Locale.getDefault(), "%.0f", completionBreakdown.completionRate)}%",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant

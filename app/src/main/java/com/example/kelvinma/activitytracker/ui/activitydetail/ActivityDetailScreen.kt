@@ -38,6 +38,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.kelvinma.activitytracker.data.Activity
 import com.example.kelvinma.activitytracker.data.AppDatabase
 import com.example.kelvinma.activitytracker.data.Interval
+import java.util.Locale
 import com.example.kelvinma.activitytracker.ui.theme.ActivityTrackerTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -145,7 +146,7 @@ fun ActivityDetailScreen(navController: NavController, activity: Activity?) {
                                     color = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                                 Text(
-                                    text = "${String.format("%.1f", stats.averageProgress)}%",
+                                    text = "${String.format(Locale.getDefault(), "%.1f", stats.averageProgress)}%",
                                     style = MaterialTheme.typography.headlineSmall,
                                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                                     fontWeight = FontWeight.Bold
