@@ -1,5 +1,6 @@
 package com.example.kelvinma.activitytracker.ui.analytics
 
+import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.kelvinma.activitytracker.data.ActivitySession
@@ -8,6 +9,8 @@ import com.example.kelvinma.activitytracker.data.ActivityStatsRaw
 import com.example.kelvinma.activitytracker.data.CompletionStatus
 import com.example.kelvinma.activitytracker.data.CompletionType
 import com.example.kelvinma.activitytracker.data.getCompletionStatus
+import com.example.kelvinma.activitytracker.util.DatabaseExporter
+import com.example.kelvinma.activitytracker.util.ExportResult
 import com.example.kelvinma.activitytracker.util.Logger
 import com.example.kelvinma.activitytracker.util.Result
 import com.example.kelvinma.activitytracker.util.safeSuspendCall
@@ -33,6 +36,15 @@ class AnalyticsViewModel(
 
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
+
+    private val _isExporting = MutableStateFlow(false)
+    val isExporting: StateFlow<Boolean> = _isExporting
+
+    private val _exportEvent = MutableStateFlow<Intent?>(null)
+    val exportEvent: StateFlow<Intent?> = _exportEvent
+
+    private val _exportResult = MutableStateFlow<ExportResult?>(null)
+    val exportResult: StateFlow<ExportResult?> = _exportResult
 
     init {
         Logger.d(Logger.TAG_ANALYTICS, "Initializing AnalyticsViewModel")
@@ -290,5 +302,37 @@ class AnalyticsViewModel(
 
     fun refreshData() {
         loadAnalyticsData()
+    }
+
+    fun exportDatabase(recipientEmail: String) {
+        viewModelScope.launch {
+            _isExporting.value = true
+            _errorMessage.value = null
+            
+            try {
+                Logger.d(Logger.TAG_ANALYTICS, "Starting database export for email: $recipientEmail")
+                val exporter = DatabaseExporter(applicationContext)
+                val exportResult = exporter.exportDatabaseViaEmail(recipientEmail)
+                
+                if (exportResult != null) {
+                    _exportResult.value = exportResult
+                    _exportEvent.value = exportResult.intent
+                    Logger.i(Logger.TAG_ANALYTICS, "Database export intent created successfully, size: ${exportResult.getFormattedFileSize()}")
+                } else {
+                    _errorMessage.value = "Failed to create database export. Please try again."
+                    Logger.e(Logger.TAG_ANALYTICS, "Failed to create database export intent")
+                }
+            } catch (e: Exception) {
+                Logger.e(Logger.TAG_ANALYTICS, "Error during database export", e)
+                _errorMessage.value = "Export failed: ${e.message}"
+            } finally {
+                _isExporting.value = false
+            }
+        }
+    }
+
+    fun clearExportEvent() {
+        _exportEvent.value = null
+        _exportResult.value = null
     }
 }
